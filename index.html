@@ -655,8 +655,8 @@
           <div class="lg:col-span-8 glass" style="border-radius: 20px; padding: 32px;">
             
             <div class="segmented">
-              <button id="mode-new" class="segment lhs-mono active">New student application</button>
-              <button id="mode-returning" class="segment lhs-mono">Returning student re-registration</button>
+              <button id="mode-new" class="segment lhs-mono active" type="button">New student application</button>
+              <button id="mode-returning" class="segment lhs-mono" type="button">Returning student re-registration</button>
             </div>
 
             <!-- Progress Rail -->
@@ -1203,6 +1203,29 @@
       });
     });
 
+    // File Upload Simulation
+    document.querySelectorAll('.file-input').forEach(input => {
+      input.addEventListener('change', (e) => {
+        const key = input.getAttribute('data-key');
+        const file = e.target.files[0];
+        if (file) {
+          state.files[key] = file.name;
+          document.getElementById(`lbl-btn-transcript`).textContent = 'Browse';
+          document.getElementById(`hint-${key}`).textContent = `Attached: ${file.name}`;
+          document.getElementById(`err-${key}`).classList.add('hidden');
+          
+          // Animate progress bar
+          const fill = document.getElementById(`track-${key}`);
+          let progress = 0;
+          const interval = setInterval(() => {
+            progress += 20;
+            fill.style.width = progress + '%';
+            if (progress >= 100) clearInterval(interval);
+          }, 60);
+        }
+      });
+    });
+
     // Step Transition Handler
     const btnNext = document.getElementById('btn-next');
     const btnBack = document.getElementById('btn-back');
@@ -1281,36 +1304,26 @@
 
         if (!state.formData.fullName) {
           document.getElementById('err-fullName').classList.remove('hidden');
-          document.getElementById('input-fullName').classList.add('error');
           valid = false;
         } else {
           document.getElementById('err-fullName').classList.add('hidden');
-          document.getElementById('input-fullName').classList.remove('error');
         }
 
         if (!state.formData.dob) {
           document.getElementById('err-dob').classList.remove('hidden');
-          document.getElementById('input-dob').classList.add('error');
           valid = false;
         } else {
           document.getElementById('err-dob').classList.add('hidden');
-          document.getElementById('input-dob').classList.remove('error');
         }
 
         if (state.mode === 'new' && !state.formData.previousSchool) {
-          document.getElementById('err-conditional').textContent = 'Enter the previous school.';
           document.getElementById('err-conditional').classList.remove('hidden');
-          document.getElementById('input-previousSchool').classList.add('error');
           valid = false;
         } else if (state.mode === 'returning' && !state.formData.studentId) {
-          document.getElementById('err-conditional').textContent = 'Enter existing student ID.';
           document.getElementById('err-conditional').classList.remove('hidden');
-          document.getElementById('input-studentId').classList.add('error');
           valid = false;
         } else {
           document.getElementById('err-conditional').classList.add('hidden');
-          document.getElementById('input-previousSchool').classList.remove('error');
-          document.getElementById('input-studentId').classList.remove('error');
         }
 
         if (!state.selectedGrade) {
@@ -1319,9 +1332,7 @@
         } else {
           document.getElementById('err-grade').classList.add('hidden');
         }
-      }
-
-      if (state.step === 2) {
+      } else if (state.step === 2) {
         state.formData.guardianName = document.getElementById('input-guardianName').value.trim();
         state.formData.relationship = document.getElementById('input-relationship').value.trim();
         state.formData.phone = document.getElementById('input-phone').value.trim();
@@ -1330,76 +1341,75 @@
 
         if (!state.formData.guardianName) {
           document.getElementById('err-guardianName').classList.remove('hidden');
-          document.getElementById('input-guardianName').classList.add('error');
           valid = false;
         } else {
           document.getElementById('err-guardianName').classList.add('hidden');
-          document.getElementById('input-guardianName').classList.remove('error');
         }
 
         if (!state.formData.relationship) {
           document.getElementById('err-relationship').classList.remove('hidden');
-          document.getElementById('input-relationship').classList.add('error');
           valid = false;
         } else {
           document.getElementById('err-relationship').classList.add('hidden');
-          document.getElementById('input-relationship').classList.remove('error');
         }
 
-        if (!/^[+0-9 ()-]{7,}$/.test(state.formData.phone)) {
+        if (!state.formData.phone) {
           document.getElementById('err-phone').classList.remove('hidden');
-          document.getElementById('input-phone').classList.add('error');
           valid = false;
         } else {
           document.getElementById('err-phone').classList.add('hidden');
-          document.getElementById('input-phone').classList.remove('error');
         }
 
-        if (!/^\S+@\S+\.\S+$/.test(state.formData.email)) {
+        if (!state.formData.email || !state.formData.email.includes('@')) {
           document.getElementById('err-email').classList.remove('hidden');
-          document.getElementById('input-email').classList.add('error');
           valid = false;
         } else {
           document.getElementById('err-email').classList.add('hidden');
-          document.getElementById('input-email').classList.remove('error');
         }
 
         if (!state.formData.address) {
           document.getElementById('err-address').classList.remove('hidden');
-          document.getElementById('input-address').classList.add('error');
           valid = false;
         } else {
           document.getElementById('err-address').classList.add('hidden');
-          document.getElementById('input-address').classList.remove('error');
+        }
+      } else if (state.step === 3) {
+        if (!state.files.transcript) {
+          document.getElementById('err-transcript').classList.remove('hidden');
+          valid = false;
+        } else {
+          document.getElementById('err-transcript').classList.add('hidden');
+        }
+        if (!state.files.id) {
+          document.getElementById('err-id').classList.remove('hidden');
+          valid = false;
+        } else {
+          document.getElementById('err-id').classList.add('hidden');
+        }
+        if (!state.files.photo) {
+          document.getElementById('err-photo').classList.remove('hidden');
+          valid = false;
+        } else {
+          document.getElementById('err-photo').classList.add('hidden');
         }
       }
-
-      if (state.step === 3) {
-        ['transcript', 'id', 'photo'].forEach(key => {
-          if (!state.files[key] || state.files[key].progress < 100) {
-            document.getElementById(`err-${key}`).classList.remove('hidden');
-            document.getElementById(`dz-${key}`).classList.add('error');
-            valid = false;
-          } else {
-            document.getElementById(`err-${key}`).classList.add('hidden');
-            document.getElementById(`dz-${key}`).classList.remove('error');
-          }
-        });
-      }
-
       return valid;
     }
 
     btnNext.addEventListener('click', () => {
       if (validateCurrentStep()) {
-        state.step = Math.min(state.step + 1, 4);
-        updateStepUI();
+        if (state.step < 4) {
+          state.step++;
+          updateStepUI();
+        }
       }
     });
 
     btnBack.addEventListener('click', () => {
-      state.step = Math.max(state.step - 1, 1);
-      updateStepUI();
+      if (state.step > 1) {
+        state.step--;
+        updateStepUI();
+      }
     });
 
     btnRestart.addEventListener('click', () => {
@@ -1408,68 +1418,7 @@
       state.files = { transcript: null, id: null, photo: null };
       document.getElementById('admission-form').reset();
       document.querySelectorAll('.grade-chip').forEach(c => c.classList.remove('active'));
-      
-      ['transcript', 'id', 'photo'].forEach(k => {
-        document.getElementById(`track-${k}`).style.width = '0%';
-        document.getElementById(`lbl-btn-${k}`).textContent = 'Browse';
-        document.getElementById(`dz-${k}`).classList.remove('error');
-      });
-
       updateStepUI();
-    });
-
-    // File Input Controller
-    document.querySelectorAll('.file-input').forEach(input => {
-      input.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        const key = input.getAttribute('data-key');
-        if (file) simulateUpload(key, file.name);
-      });
-    });
-
-    // Drag-and-Drop Handler
-    ['transcript', 'id', 'photo'].forEach(key => {
-      const dz = document.getElementById(`dz-${key}`);
-      dz.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        dz.classList.add('drag');
-      });
-      dz.addEventListener('dragleave', () => dz.classList.remove('drag'));
-      dz.addEventListener('drop', (e) => {
-        e.preventDefault();
-        dz.classList.remove('drag');
-        const file = e.dataTransfer.files[0];
-        simulateUpload(key, file ? file.name : `${key}-doc.pdf`);
-      });
-    });
-
-    function simulateUpload(key, name) {
-      document.getElementById(`hint-${key}`).textContent = name;
-      document.getElementById(`lbl-btn-${key}`).textContent = 'Uploading...';
-      document.getElementById(`err-${key}`).classList.add('hidden');
-      document.getElementById(`dz-${key}`).classList.remove('error');
-
-      state.files[key] = { name, progress: 0 };
-
-      let p = 0;
-      const timer = setInterval(() => {
-        p += Math.random() * 25 + 15;
-        if (p >= 100) {
-          p = 100;
-          clearInterval(timer);
-          document.getElementById(`lbl-btn-${key}`).textContent = 'Replace';
-        }
-        state.files[key].progress = Math.round(p);
-        document.getElementById(`track-${key}`).style.width = `${Math.round(p)}%`;
-      }, 180);
-    }
-
-    // Keyboard Navigation Shortcut (Cmd/Ctrl + L)
-    window.addEventListener('keydown', (e) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'l') {
-        e.preventDefault();
-        document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' });
-      }
     });
   </script>
 </body>
