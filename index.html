@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;650;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-  
+
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
 
@@ -75,7 +75,7 @@
     .text-center { text-align: center; }
     .flex-wrap { flex-wrap: wrap; }
     .relative { position: relative; }
-    .hidden { display: none; }
+    .hidden { display: none !important; }
 
     @media (min-width: 768px) {
       .md\:flex { display: flex; }
@@ -218,7 +218,7 @@
     .dashboard-card { box-shadow: 0 30px 80px -30px rgba(0,0,0,0.8); }
     .dash-tile { background: rgba(255,255,255,0.025); border: 1px solid var(--border-glass); border-radius: 12px; padding: 12px; }
     
-    /* Inverted Graph (Hung upside-down via flex alignment) */
+    /* Inverted Graph */
     .graph-inverted { flex-direction: row; align-items: flex-start !important; }
     .bar { flex: 1; min-width: 4px; border-radius: 0 0 3px 3px; background: linear-gradient(180deg, var(--accent-blue-bright), rgba(30,58,138,0.3)); animation: bar-rise-inverted .7s ease backwards; }
     @keyframes bar-rise-inverted { from { transform: scaleY(0); transform-origin: top; } to { transform: scaleY(1); transform-origin: top; } }
@@ -251,7 +251,7 @@
     .chip.active { border-color: var(--accent-blue); background: rgba(37,99,235,0.14); color: #fff; box-shadow: 0 0 0 1px rgba(37,99,235,0.4); }
     .chip:not(.active):hover { border-color: var(--border-glass-hover); color: var(--text-primary); }
 
-    .pillar-icon { width: 34px; height: 34px; border-radius: 9px; background: rgba(37,99,235,0.12); border: 1px solid rgba(37,99,235,0.25); display: flex; align-items: center; justify-content: center; }
+    .pillar-icon { width: 34px; height: 34px; border-radius: 999px; background: rgba(37,99,235,0.12); border: 1px solid rgba(37,99,235,0.25); display: flex; align-items: center; justify-content: center; }
 
     /* Multi-step Registration Form */
     .segmented { display: flex; background: rgba(255,255,255,0.03); border: 1px solid var(--border-glass); border-radius: 12px; padding: 4px; gap: 4px; }
@@ -635,7 +635,7 @@
               Registration, built like software.
             </h2>
             <p class="text-secondary" style="font-size: 15px; line-height: 1.65; margin-top: 12px; max-width: 400px;">
-              Four short steps, autosaved as you go. New applicants and returning
+              Three short steps with document attachments. New applicants and returning
               students follow the same clean flow.
             </p>
             <div style="margin-top: 28px;">
@@ -643,10 +643,10 @@
                 <i data-lucide="shield-check" class="text-accent" style="width:15px; height:15px;"></i> Reviewed within 3 business days
               </div>
               <div class="flex items-center text-tertiary" style="gap: 8px; font-size: 13.5px; margin-bottom: 12px;">
-                <i data-lucide="shield-check" class="text-accent" style="width:15px; height:15px;"></i> SMS + email confirmation
+                <i data-lucide="shield-check" class="text-accent" style="width:15px; height:15px;"></i> Direct email delivery to admissions
               </div>
               <div class="flex items-center text-tertiary" style="gap: 8px; font-size: 13.5px; margin-bottom: 12px;">
-                <i data-lucide="shield-check" class="text-accent" style="width:15px; height:15px;"></i> No paper forms required
+                <i data-lucide="shield-check" class="text-accent" style="width:15px; height:15px;"></i> Secure image and file upload
               </div>
             </div>
           </div>
@@ -679,18 +679,16 @@
                   <span id="step-dot-3" class="step-dot lhs-mono">3</span>
                   <span id="step-lbl-3" class="text-tertiary hidden sm:inline" style="font-size: 13px;">Documents</span>
                 </div>
-                <span id="step-line-3" class="step-line"></span>
-
-                <div class="flex items-center" style="gap: 9px;">
-                  <span id="step-dot-4" class="step-dot lhs-mono">4</span>
-                  <span id="step-lbl-4" class="text-tertiary hidden sm:inline" style="font-size: 13px;">Confirmation</span>
-                </div>
 
               </div>
             </div>
 
-            <!-- Application Form Steps -->
-            <form id="admission-form" action="https://formspree.io/f/YOUR_FORM_ID" method="POST" enctype="multipart/form-data" onsubmit="return false;">
+            <!-- Application Form Steps (Integrated with FormSubmit) -->
+            <form id="admission-form" action="https://formsubmit.co/asfawlemlemschool@gmail.com" method="POST" enctype="multipart/form-data">
+              
+              <!-- FormSubmit Options -->
+              <input type="hidden" name="_captcha" value="false">
+              <input type="hidden" name="_subject" value="New Student Application - Lemlem High School">
               
               <!-- Hidden form inputs for dynamic state -->
               <input type="hidden" name="applicant_track" id="hidden-track" value="New student" />
@@ -779,7 +777,7 @@
                     </div>
                     <label class="btn-glass upload-btn lhs-mono">
                       <i data-lucide="upload-cloud" style="width:13px; height:13px;"></i> <span id="lbl-btn-transcript">Browse</span>
-                      <input type="file" name="transcript_file" class="hidden file-input" data-key="transcript" />
+                      <input type="file" name="attachment_transcript" accept="image/*,.pdf" class="hidden file-input" data-key="transcript" />
                     </label>
                   </div>
                   <div class="upload-track"><div id="track-transcript" class="upload-fill"></div></div>
@@ -798,7 +796,7 @@
                     </div>
                     <label class="btn-glass upload-btn lhs-mono">
                       <i data-lucide="upload-cloud" style="width:13px; height:13px;"></i> <span id="lbl-btn-id">Browse</span>
-                      <input type="file" name="id_file" class="hidden file-input" data-key="id" />
+                      <input type="file" name="attachment_id" accept="image/*,.pdf" class="hidden file-input" data-key="id" />
                     </label>
                   </div>
                   <div class="upload-track"><div id="track-id" class="upload-fill"></div></div>
@@ -817,7 +815,7 @@
                     </div>
                     <label class="btn-glass upload-btn lhs-mono">
                       <i data-lucide="upload-cloud" style="width:13px; height:13px;"></i> <span id="lbl-btn-photo">Browse</span>
-                      <input type="file" name="photo_file" class="hidden file-input" data-key="photo" />
+                      <input type="file" name="attachment_photo" accept="image/*" class="hidden file-input" data-key="photo" />
                     </label>
                   </div>
                   <div class="upload-track"><div id="track-photo" class="upload-fill"></div></div>
@@ -825,60 +823,8 @@
                 </div>
 
                 <p class="text-tertiary" style="font-size: 12px; margin-top: 4px;">
-                  Drag a file onto any box, or use Browse. Accepted: PDF, JPG, PNG — up to 10MB.
+                  Accepted: PDF, JPG, PNG — attachments are sent directly with submission.
                 </p>
-              </div>
-
-              <!-- STEP 4: Submission Confirmation Ticket -->
-              <div id="step-pane-4" class="hidden">
-                <div class="ticket">
-                  <div class="flex items-center justify-between" style="margin-bottom: 18px;">
-                    <div class="flex items-center" style="gap: 10px;">
-                      <span class="ticket-check"><i data-lucide="check-circle-2" style="width:18px; height:18px;"></i></span>
-                      <div>
-                        <div class="text-primary" style="font-size: 15px; font-weight: 600;">Application received</div>
-                        <div class="text-tertiary" style="font-size: 12px;">Status: pending review</div>
-                      </div>
-                    </div>
-                    <span id="ticket-app-id" class="lhs-mono text-accent" style="font-size: 13px;">LHS-2026-XXXXX</span>
-                  </div>
-
-                  <div class="ticket-divider"></div>
-
-                  <div class="grid sm:grid-cols-2" style="gap: 14px 24px; padding: 18px 0;">
-                    <div>
-                      <div class="text-tertiary" style="font-size: 11.5px; margin-bottom: 3px;">Applicant</div>
-                      <div id="summary-name" class="text-primary" style="font-size: 13.5px;">—</div>
-                    </div>
-                    <div>
-                      <div class="text-tertiary" style="font-size: 11.5px; margin-bottom: 3px;">Grade</div>
-                      <div id="summary-grade" class="text-primary" style="font-size: 13.5px;">—</div>
-                    </div>
-                    <div>
-                      <div class="text-tertiary" style="font-size: 11.5px; margin-bottom: 3px;">Track</div>
-                      <div id="summary-track" class="text-primary" style="font-size: 13.5px;">New student</div>
-                    </div>
-                    <div>
-                      <div class="text-tertiary" style="font-size: 11.5px; margin-bottom: 3px;">Guardian</div>
-                      <div id="summary-guardian" class="text-primary" style="font-size: 13.5px;">—</div>
-                    </div>
-                    <div>
-                      <div class="text-tertiary" style="font-size: 11.5px; margin-bottom: 3px;">Phone</div>
-                      <div id="summary-phone" class="text-primary" style="font-size: 13.5px;">—</div>
-                    </div>
-                    <div>
-                      <div class="text-tertiary" style="font-size: 11.5px; margin-bottom: 3px;">Email</div>
-                      <div id="summary-email" class="text-primary" style="font-size: 13.5px;">—</div>
-                    </div>
-                  </div>
-
-                  <div class="ticket-divider"></div>
-
-                  <div class="flex items-center text-tertiary" style="gap: 8px; font-size: 12px; padding-top: 16px;">
-                    <i data-lucide="calendar" style="width:13px; height:13px;"></i>
-                    A confirmation has been sent — decisions are shared within 3 business days.
-                  </div>
-                </div>
               </div>
 
               <!-- Form Action Buttons -->
@@ -889,11 +835,7 @@
                 <div id="btn-spacer"></div>
 
                 <button id="btn-next" type="button" class="btn-primary flex items-center" style="padding: 10px 18px; gap: 6px; font-size: 13.5px;">
-                  <span id="btn-next-text">Continue</span> <i data-lucide="chevron-right" style="width:15px; height:15px;"></i>
-                </button>
-
-                <button id="btn-restart" type="button" class="btn-glass flex items-center hidden" style="padding: 10px 16px; gap: 6px; font-size: 13.5px; margin-left: auto;">
-                  Start a new application
+                  <span id="btn-next-text">Next Step</span> <i data-lucide="chevron-right" style="width:15px; height:15px;"></i>
                 </button>
               </div>
 
@@ -1006,7 +948,7 @@
             <i data-lucide="phone" style="width:13px; height:13px;"></i> +251 11 555 0134
           </div>
           <div class="flex items-center text-tertiary footer-link" style="gap: 8px;">
-            <i data-lucide="mail" style="width:13px; height:13px;"></i> admissions@lemlemhigh.edu.et
+            <i data-lucide="mail" style="width:13px; height:13px;"></i> asfawlemlemschool@gmail.com
           </div>
         </div>
       </div>
@@ -1024,440 +966,139 @@
     </div>
   </footer>
 
-  <!-- Native JavaScript Logic -->
+  <!-- Script for Interactivity & Multi-Step Logic -->
   <script>
-    // Initialize Lucide Icons
     lucide.createIcons();
 
-    // Navigation Scroll & Mobile Toggle
-    const navHeader = document.getElementById('nav-header');
-    window.addEventListener('scroll', () => {
-      if (window.scrollY > 12) {
-        navHeader.classList.add('nav-scrolled');
-      } else {
-        navHeader.classList.remove('nav-scrolled');
-      }
-    });
+    // Multi-step state management
+    let currentStep = 1;
+    let selectedGrade = '';
+    const form = document.getElementById('admission-form');
+    const btnNext = document.getElementById('btn-next');
+    const btnNextText = document.getElementById('btn-next-text');
+    const btnBack = document.getElementById('btn-back');
 
-    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
-    const mobileMenu = document.getElementById('mobile-menu');
-    mobileMenuBtn.addEventListener('click', () => {
-      mobileMenu.classList.toggle('hidden');
-    });
-
-    document.querySelectorAll('.mobile-nav-close').forEach(link => {
-      link.addEventListener('click', () => mobileMenu.classList.add('hidden'));
-    });
-
-    // Spotlight cursor tracking effect
-    document.querySelectorAll('.spot-card').forEach(card => {
-      card.addEventListener('mousemove', e => {
-        const rect = card.getBoundingClientRect();
-        card.style.setProperty('--mx', `${e.clientX - rect.left}px`);
-        card.style.setProperty('--my', `${e.clientY - rect.top}px`);
-      });
-    });
-
-    // Dashboard Metric Counter Animation
-    const counters = document.querySelectorAll('.counter');
-    counters.forEach(counter => {
-      const target = +counter.getAttribute('data-target');
-      const suffix = counter.getAttribute('data-suffix');
-      const duration = 1600;
-      let startTs = null;
-
-      function step(ts) {
-        if (!startTs) startTs = ts;
-        const progress = Math.min((ts - startTs) / duration, 1);
-        const eased = 1 - Math.pow(1 - progress, 3);
-        const current = Math.floor(eased * target);
-        counter.textContent = current.toLocaleString() + suffix;
-        if (progress < 1) {
-          requestAnimationFrame(step);
-        } else {
-          counter.textContent = target.toLocaleString() + suffix;
-        }
-      }
-      requestAnimationFrame(step);
-    });
-
-    // Timeline Range Controller
-    const TIMELINE = [
-      { year: 1996, ec: "1989", title: "Foundation", body: "Lemlem High School opens in Addis Ababa with three classrooms and 120 students." },
-      { year: 2002, ec: "1994", title: "First graduating class", body: "The founding cohort sits the national exam and posts a 98% pass rate." },
-      { year: 2008, ec: "2000", title: "Science complex", body: "A dedicated laboratory wing opens alongside the first robotics and debate clubs." },
-      { year: 2014, ec: "2006", title: "STEM Innovation Hub", body: "Partnerships with local universities bring applied coding and engineering to the curriculum." },
-      { year: 2020, ec: "2012", title: "Hybrid learning", body: "A resilient hybrid platform keeps every student learning — the 100% acceptance streak begins." },
-      { year: 2026, ec: "2019", title: "30th anniversary", body: "5,200+ alumni across Ethiopia. The digital campus portal you're using now goes live." }
-    ];
-
-    const timelineRange = document.getElementById('timeline-range');
-    const timelineDate = document.getElementById('timeline-date');
-    const timelineTitle = document.getElementById('timeline-title');
-    const timelineBody = document.getElementById('timeline-body');
-    const yearDots = document.querySelectorAll('.year-dot');
-
-    function setTimeline(idx) {
-      const item = TIMELINE[idx];
-      timelineRange.value = idx;
-      timelineDate.textContent = `G.C. ${item.year} · E.C. ${item.ec}`;
-      timelineTitle.textContent = item.title;
-      timelineBody.textContent = item.body;
-
-      yearDots.forEach((dot, i) => {
-        if (i === idx) dot.classList.add('active');
-        else dot.classList.remove('active');
-      });
-    }
-
-    timelineRange.addEventListener('input', (e) => setTimeline(parseInt(e.target.value)));
-    yearDots.forEach(dot => {
-      dot.addEventListener('click', () => setTimeline(parseInt(dot.getAttribute('data-idx'))));
-    });
-
-    // Live Alumni Counter Incrementer
-    const alumniTicker = document.getElementById('alumni-ticker');
-    let alumniVal = 5214;
-    setInterval(() => {
-      if (Math.random() > 0.55) {
-        alumniVal += 1;
-        alumniTicker.textContent = alumniVal.toLocaleString();
-      }
-    }, 2600);
-
-    // STEM Program JSON Code Switcher
-    const PROGRAMS = {
-      robotics: { name: "Robotics Lab", students: 84, mentor: "Eng. Selam T." },
-      ai: { name: "AI & Data Club", students: 61, mentor: "Dr. Nahom G." },
-      green: { name: "Green Energy Lab", students: 47, mentor: "Eng. Betelhem A." },
-      app: { name: "App Dev Studio", students: 73, mentor: "Mr. Kaleb M." }
-    };
-
-    const chips = document.querySelectorAll('.chip[data-program]');
-    const codeDisplay = document.getElementById('code-display');
-
-    chips.forEach(chip => {
-      chip.addEventListener('click', () => {
-        chips.forEach(c => c.classList.remove('active'));
-        chip.classList.add('active');
-        const p = PROGRAMS[chip.getAttribute('data-program')];
-        codeDisplay.innerHTML = `{
-  "program": "<span class="tok-str">${p.name}</span>",
-  "students_enrolled": <span class="tok-num">${p.students}</span>,
-  "faculty_mentor": "<span class="tok-str">${p.mentor}</span>",
-  "status": <span class="tok-key">"active"</span>
-}`;
-      });
-    });
-
-    // Multi-Step Registration Form Controller
-    let state = {
-      mode: 'new', // new | returning
-      step: 1,
-      selectedGrade: '',
-      formData: {
-        fullName: '',
-        dob: '',
-        previousSchool: '',
-        studentId: '',
-        guardianName: '',
-        relationship: '',
-        phone: '',
-        email: '',
-        address: ''
-      },
-      files: {
-        transcript: null,
-        id: null,
-        photo: null
-      }
-    };
-
-    const modeNewBtn = document.getElementById('mode-new');
-    const modeRetBtn = document.getElementById('mode-returning');
-    const labelConditional = document.getElementById('label-conditional');
-    const inputPrevious = document.getElementById('input-previousSchool');
-    const inputStudentId = document.getElementById('input-studentId');
-    const hiddenTrack = document.getElementById('hidden-track');
-    const hiddenGrade = document.getElementById('hidden-grade');
-
-    modeNewBtn.addEventListener('click', () => {
-      state.mode = 'new';
-      hiddenTrack.value = 'New student';
-      modeNewBtn.classList.add('active');
-      modeRetBtn.classList.remove('active');
-      labelConditional.textContent = 'Previous school';
-      inputPrevious.classList.remove('hidden');
-      inputStudentId.classList.add('hidden');
-    });
-
-    modeRetBtn.addEventListener('click', () => {
-      state.mode = 'returning';
-      hiddenTrack.value = 'Returning student';
-      modeRetBtn.classList.add('active');
-      modeNewBtn.classList.remove('active');
-      labelConditional.textContent = 'Existing student ID';
-      inputPrevious.classList.add('hidden');
-      inputStudentId.classList.remove('hidden');
-    });
-
-    // Grade Selection Chips
-    document.querySelectorAll('.grade-chip').forEach(chip => {
-      chip.addEventListener('click', () => {
+    // Grade selection logic
+    document.querySelectorAll('.grade-chip').forEach(btn => {
+      btn.addEventListener('click', () => {
         document.querySelectorAll('.grade-chip').forEach(c => c.classList.remove('active'));
-        chip.classList.add('active');
-        state.selectedGrade = chip.getAttribute('data-grade');
-        hiddenGrade.value = `Grade ${state.selectedGrade}`;
+        btn.classList.add('active');
+        selectedGrade = btn.getAttribute('data-grade');
+        document.getElementById('hidden-grade').value = selectedGrade;
         document.getElementById('err-grade').classList.add('hidden');
       });
     });
 
-    // File Upload Simulation
+    // File selection UI feedback
     document.querySelectorAll('.file-input').forEach(input => {
       input.addEventListener('change', (e) => {
-        const key = input.getAttribute('data-key');
-        const file = e.target.files[0];
-        if (file) {
-          state.files[key] = file.name;
-          document.getElementById(`lbl-btn-transcript`).textContent = 'Browse';
-          document.getElementById(`hint-${key}`).textContent = `Attached: ${file.name}`;
+        const key = e.target.getAttribute('data-key');
+        if (e.target.files && e.target.files[0]) {
+          document.getElementById(`lbl-btn-${key}`).innerText = 'Selected';
+          document.getElementById(`track-${key}`).style.width = '100%';
           document.getElementById(`err-${key}`).classList.add('hidden');
-          
-          // Animate progress bar
-          const fill = document.getElementById(`track-${key}`);
-          let progress = 0;
-          const interval = setInterval(() => {
-            progress += 20;
-            fill.style.width = progress + '%';
-            if (progress >= 100) clearInterval(interval);
-          }, 60);
         }
       });
     });
 
-    // Step Transition Handler
-    const btnNext = document.getElementById('btn-next');
-    const btnBack = document.getElementById('btn-back');
-    const btnRestart = document.getElementById('btn-restart');
-    const btnNextText = document.getElementById('btn-next-text');
-
-    function updateStepUI() {
-      for (let i = 1; i <= 4; i++) {
-        document.getElementById(`step-pane-${i}`).classList.add('hidden');
-        const dot = document.getElementById(`step-dot-${i}`);
-        const lbl = document.getElementById(`step-lbl-${i}`);
-        
-        dot.className = "step-dot lhs-mono";
-        lbl.className = "hidden sm:inline text-tertiary";
-
-        if (i < state.step) {
-          dot.classList.add('done');
-          dot.innerHTML = '<i data-lucide="check" style="width:12px; height:12px;"></i>';
-          lbl.className = "hidden sm:inline text-primary";
-        } else if (i === state.step) {
-          dot.classList.add('active');
-          dot.textContent = i;
-          lbl.className = "hidden sm:inline text-primary";
-        } else {
-          dot.textContent = i;
-        }
-
-        if (i < 4) {
-          const line = document.getElementById(`step-line-${i}`);
-          if (i < state.step) line.classList.add('done');
-          else line.classList.remove('done');
-        }
-      }
-
-      document.getElementById(`step-pane-${state.step}`).classList.remove('hidden');
-
-      if (state.step === 1) {
-        btnBack.classList.add('hidden');
-        btnNext.classList.remove('hidden');
-        btnRestart.classList.add('hidden');
-        btnNextText.textContent = "Continue";
-      } else if (state.step === 2) {
-        btnBack.classList.remove('hidden');
-        btnNext.classList.remove('hidden');
-        btnRestart.classList.add('hidden');
-        btnNextText.textContent = "Continue";
-      } else if (state.step === 3) {
-        btnBack.classList.remove('hidden');
-        btnNext.classList.remove('hidden');
-        btnRestart.classList.add('hidden');
-        btnNextText.textContent = "Submit application";
-      } else if (state.step === 4) {
-        btnBack.classList.add('hidden');
-        btnNext.classList.add('hidden');
-        btnRestart.classList.remove('hidden');
-        
-        document.getElementById('ticket-app-id').textContent = 'LHS-2026-' + Math.random().toString(36).slice(2, 7).toUpperCase();
-        document.getElementById('summary-name').textContent = state.formData.fullName || '—';
-        document.getElementById('summary-grade').textContent = state.selectedGrade ? `Grade ${state.selectedGrade}` : '—';
-        document.getElementById('summary-track').textContent = state.mode === 'new' ? 'New student' : 'Returning student';
-        document.getElementById('summary-guardian').textContent = state.formData.guardianName || '—';
-        document.getElementById('summary-phone').textContent = state.formData.phone || '—';
-        document.getElementById('summary-email').textContent = state.formData.email || '—';
-      }
-
-      lucide.createIcons();
-    }
-
-    function validateCurrentStep() {
-      let valid = true;
-      if (state.step === 1) {
-        state.formData.fullName = document.getElementById('input-fullName').value.trim();
-        state.formData.dob = document.getElementById('input-dob').value;
-        state.formData.previousSchool = document.getElementById('input-previousSchool').value.trim();
-        state.formData.studentId = document.getElementById('input-studentId').value.trim();
-
-        if (!state.formData.fullName) {
-          document.getElementById('err-fullName').classList.remove('hidden');
-          valid = false;
-        } else {
-          document.getElementById('err-fullName').classList.add('hidden');
-        }
-
-        if (!state.formData.dob) {
-          document.getElementById('err-dob').classList.remove('hidden');
-          valid = false;
-        } else {
-          document.getElementById('err-dob').classList.add('hidden');
-        }
-
-        if (state.mode === 'new' && !state.formData.previousSchool) {
-          document.getElementById('err-conditional').classList.remove('hidden');
-          valid = false;
-        } else if (state.mode === 'returning' && !state.formData.studentId) {
-          document.getElementById('err-conditional').classList.remove('hidden');
-          valid = false;
-        } else {
-          document.getElementById('err-conditional').classList.add('hidden');
-        }
-
-        if (!state.selectedGrade) {
-          document.getElementById('err-grade').classList.remove('hidden');
-          valid = false;
-        } else {
-          document.getElementById('err-grade').classList.add('hidden');
-        }
-      } else if (state.step === 2) {
-        state.formData.guardianName = document.getElementById('input-guardianName').value.trim();
-        state.formData.relationship = document.getElementById('input-relationship').value.trim();
-        state.formData.phone = document.getElementById('input-phone').value.trim();
-        state.formData.email = document.getElementById('input-email').value.trim();
-        state.formData.address = document.getElementById('input-address').value.trim();
-
-        if (!state.formData.guardianName) {
-          document.getElementById('err-guardianName').classList.remove('hidden');
-          valid = false;
-        } else {
-          document.getElementById('err-guardianName').classList.add('hidden');
-        }
-
-        if (!state.formData.relationship) {
-          document.getElementById('err-relationship').classList.remove('hidden');
-          valid = false;
-        } else {
-          document.getElementById('err-relationship').classList.add('hidden');
-        }
-
-        if (!state.formData.phone) {
-          document.getElementById('err-phone').classList.remove('hidden');
-          valid = false;
-        } else {
-          document.getElementById('err-phone').classList.add('hidden');
-        }
-
-        if (!state.formData.email || !state.formData.email.includes('@')) {
-          document.getElementById('err-email').classList.remove('hidden');
-          valid = false;
-        } else {
-          document.getElementById('err-email').classList.add('hidden');
-        }
-
-        if (!state.formData.address) {
-          document.getElementById('err-address').classList.remove('hidden');
-          valid = false;
-        } else {
-          document.getElementById('err-address').classList.add('hidden');
-        }
-      } else if (state.step === 3) {
-        if (!state.files.transcript) {
-          document.getElementById('err-transcript').classList.remove('hidden');
-          valid = false;
-        } else {
-          document.getElementById('err-transcript').classList.add('hidden');
-        }
-        if (!state.files.id) {
-          document.getElementById('err-id').classList.remove('hidden');
-          valid = false;
-        } else {
-          document.getElementById('err-id').classList.add('hidden');
-        }
-        if (!state.files.photo) {
-          document.getElementById('err-photo').classList.remove('hidden');
-          valid = false;
-        } else {
-          document.getElementById('err-photo').classList.add('hidden');
-        }
-      }
-      return valid;
-    }
-
-    btnNext.addEventListener('click', async () => {
-      if (validateCurrentStep()) {
-        if (state.step === 3) {
-          // Submit form to Formspree via AJAX
-          btnNext.disabled = true;
-          btnNextText.textContent = "Submitting...";
-
-          const form = document.getElementById('admission-form');
-          const formData = new FormData(form);
-
-          try {
-            const response = await fetch(form.action, {
-              method: form.method,
-              body: formData,
-              headers: {
-                'Accept': 'application/json'
-              }
-            });
-
-            if (response.ok) {
-              state.step++;
-              updateStepUI();
-            } else {
-              alert("There was an issue submitting your application. Please try again.");
-            }
-          } catch (error) {
-            alert("Network error. Please check your connection and try again.");
-          } finally {
-            btnNext.disabled = false;
-          }
-        } else if (state.step < 3) {
-          state.step++;
-          updateStepUI();
+    // Step navigation
+    btnNext.addEventListener('click', () => {
+      if (validateStep(currentStep)) {
+        if (currentStep < 3) {
+          currentStep++;
+          updateStepView();
+        } else if (currentStep === 3) {
+          form.submit(); // Standard form submission to FormSubmit.co
         }
       }
     });
 
     btnBack.addEventListener('click', () => {
-      if (state.step > 1) {
-        state.step--;
-        updateStepUI();
+      if (currentStep > 1) {
+        currentStep--;
+        updateStepView();
       }
     });
 
-    btnRestart.addEventListener('click', () => {
-      state.step = 1;
-      state.selectedGrade = '';
-      state.files = { transcript: null, id: null, photo: null };
-      document.getElementById('admission-form').reset();
-      document.querySelectorAll('.grade-chip').forEach(c => c.classList.remove('active'));
-      updateStepUI();
-    });
+    function updateStepView() {
+      // Hide all panes
+      document.getElementById('step-pane-1').classList.add('hidden');
+      document.getElementById('step-pane-2').classList.add('hidden');
+      document.getElementById('step-pane-3').classList.add('hidden');
+
+      // Show current step
+      document.getElementById(`step-pane-${currentStep}`).classList.remove('hidden');
+
+      // Update Step Indicators
+      for (let i = 1; i <= 3; i++) {
+        const dot = document.getElementById(`step-dot-${i}`);
+        if (i < currentStep) {
+          dot.className = 'step-dot lhs-mono done';
+        } else if (i === currentStep) {
+          dot.className = 'step-dot lhs-mono active';
+        } else {
+          dot.className = 'step-dot lhs-mono';
+        }
+      }
+
+      // Buttons visibility & text
+      if (currentStep === 1) {
+        btnBack.classList.add('hidden');
+      } else {
+        btnBack.classList.remove('hidden');
+      }
+
+      if (currentStep === 3) {
+        btnNextText.innerText = 'Submit Registration';
+      } else {
+        btnNextText.innerText = 'Next Step';
+      }
+    }
+
+    function validateStep(step) {
+      let isValid = true;
+      if (step === 1) {
+        const name = document.getElementById('input-fullName').value.trim();
+        const dob = document.getElementById('input-dob').value;
+        
+        if (!name) {
+          document.getElementById('err-fullName').classList.remove('hidden');
+          isValid = false;
+        } else {
+          document.getElementById('err-fullName').classList.add('hidden');
+        }
+
+        if (!dob) {
+          document.getElementById('err-dob').classList.remove('hidden');
+          isValid = false;
+        } else {
+          document.getElementById('err-dob').classList.add('hidden');
+        }
+
+        if (!selectedGrade) {
+          document.getElementById('err-grade').classList.remove('hidden');
+          isValid = false;
+        }
+      } else if (step === 2) {
+        const guardian = document.getElementById('input-guardianName').value.trim();
+        const phone = document.getElementById('input-phone').value.trim();
+
+        if (!guardian) {
+          document.getElementById('err-guardianName').classList.remove('hidden');
+          isValid = false;
+        } else {
+          document.getElementById('err-guardianName').classList.add('hidden');
+        }
+
+        if (!phone) {
+          document.getElementById('err-phone').classList.remove('hidden');
+          isValid = false;
+        } else {
+          document.getElementById('err-phone').classList.add('hidden');
+        }
+      }
+      return isValid;
+    }
   </script>
 </body>
 </html>
-
