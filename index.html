@@ -20,7 +20,7 @@
 <script src="https://unpkg.com/lucide-react@0.263.1/dist/umd/lucide-react.min.js" crossorigin></script>
 
 <style>
-  html, body { margin: 0; padding: 0; background: #020604; }
+  html, body { margin: 0; padding: 0; background: #020604; scroll-behavior: smooth; }
   #root { min-height: 100vh; }
   .lhs-loading {
     min-height: 100vh; display: flex; align-items: center; justify-content: center;
@@ -67,6 +67,45 @@ const {
   Twitter = () => null,
   Linkedin = () => null,
 } = lucideObj;
+
+/* ------------------------------------------------------------------ */
+/*  Animation Utilities & Components                                  */
+/* ------------------------------------------------------------------ */
+
+// Scroll-triggered Reveal Wrapper
+function Reveal({ children, className = "", delay = 0, style = {}, direction = "up" }) {
+  const [isVisible, setIsVisible] = useState(false);
+  const domRef = useRef(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          if (domRef.current) observer.unobserve(domRef.current);
+        }
+      },
+      { threshold: 0.12, rootMargin: "0px 0px -40px 0px" }
+    );
+
+    const { current } = domRef;
+    if (current) observer.observe(current);
+
+    return () => {
+      if (current) observer.unobserve(current);
+    };
+  }, []);
+
+  return (
+    <div
+      ref={domRef}
+      className={`reveal-box ${direction} ${isVisible ? "is-visible" : ""} ${className}`}
+      style={{ transitionDelay: `${delay}ms`, ...style }}
+    >
+      {children}
+    </div>
+  );
+}
 
 /* ------------------------------------------------------------------ */
 /*  Mock data                                                          */
@@ -125,7 +164,6 @@ const TIMELINE = [
   },
 ];
 
-// UPDATED: Ethiopian Regions only
 const ETHIOPIAN_REGIONS = [
   { name: "Addis Ababa", pct: 100 },
   { name: "Oromia", pct: 68 },
@@ -266,9 +304,9 @@ function Header() {
   return (
     <header className={`nav-shell fixed top-0 left-0 right-0 z-50 ${scrolled ? "nav-scrolled" : ""}`}>
       <div className="max-w-7xl mx-auto flex items-center justify-between" style={{ height: "64px", padding: "0 20px" }}>
-        <a href="#top" className="flex items-center" style={{ gap: "10px" }}>
-          <span className="logo-mark lhs-mono">LH</span>
-          <span className="text-primary" style={{ fontWeight: 600, fontSize: "14.5px", letterSpacing: "-0.01em" }}>
+        <a href="#top" className="flex items-center group" style={{ gap: "10px" }}>
+          <span className="logo-mark lhs-mono group-hover:scale-105 transition-transform duration-300">LH</span>
+          <span className="text-primary font-semibold text-[14.5px] tracking-tight">
             Lemlem High School
           </span>
           <span className="pill-mini lhs-mono hidden md:inline-flex">30&nbsp;YRS</span>
@@ -297,7 +335,7 @@ function Header() {
       </div>
 
       {open && (
-        <div className="md:hidden glass" style={{ margin: "0 12px 12px", borderRadius: "16px", padding: "10px" }}>
+        <div className="md:hidden glass animate-fade-in" style={{ margin: "0 12px 12px", borderRadius: "16px", padding: "10px" }}>
           {NAV_LINKS.map((l) => (
             <a key={l.label} href={l.href} onClick={() => setOpen(false)} className="mobile-link text-secondary">
               {l.label}
@@ -320,10 +358,10 @@ function StatTile({ stat }) {
   const Icon = stat.icon;
   const value = useCountUp(stat.target, 1600);
   return (
-    <div className="dash-tile">
+    <div className="dash-tile group hover:border-[var(--border-glass-hover)] transition-all duration-300">
       <div className="flex items-center justify-between" style={{ marginBottom: "10px" }}>
-        <Icon size={15} className="text-accent" />
-        <ArrowUpRight size={13} className="text-tertiary" />
+        <Icon size={15} className="text-accent group-hover:scale-110 transition-transform duration-300" />
+        <ArrowUpRight size={13} className="text-tertiary group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-300" />
       </div>
       <div className="lhs-mono gradient-text" style={{ fontSize: "22px", fontWeight: 600 }}>
         {value.toLocaleString()}
@@ -365,7 +403,7 @@ function HeroDashboard() {
         </div>
         <div className="flex items-end" style={{ gap: "5px", height: "56px" }}>
           {bars.map((h, i) => (
-            <div key={i} className="bar" style={{ height: `${h}%`, animationDelay: `${i * 45}ms` }} />
+            <div key={i} className="bar" style={{ height: `${h}%`, animationDelay: `${i * 50}ms` }} />
           ))}
         </div>
       </div>
@@ -386,51 +424,63 @@ function Hero() {
   }, []);
 
   return (
-    <section id="top" className="relative text-center" style={{ paddingTop: "148px", paddingBottom: "80px" }}>
-      <div className="ambient-glow ambient-1" />
-      <div className="ambient-glow ambient-2" />
+    <section id="top" className="relative text-center overflow-hidden" style={{ paddingTop: "148px", paddingBottom: "80px" }}>
+      <div className="ambient-glow ambient-1 float-slow" />
+      <div className="ambient-glow ambient-2 float-reverse" />
       <div className="max-w-4xl mx-auto relative" style={{ padding: "0 20px" }}>
-        <a href="#about" className="pill inline-flex items-center" style={{ padding: "6px 14px 6px 8px", gap: "8px", marginBottom: "28px" }}>
-          <span className="pill-icon">
-            <Sparkles size={12} />
-          </span>
-          <span className="text-secondary" style={{ fontSize: "12.5px" }}>
-            30 Years of Excellence (1996–2026) · 2026/27 Portal Open
-          </span>
-        </a>
-
-        <h1 className="gradient-text mx-auto" style={{ fontSize: "clamp(2.5rem, 6vw, 4.25rem)", fontWeight: 650, lineHeight: 1.04, letterSpacing: "-0.03em", maxWidth: "800px" }}>
-          Built for the future
-          <br />
-          of education in Ethiopia.
-        </h1>
-
-        <p className="text-secondary mx-auto" style={{ fontSize: "17px", lineHeight: 1.6, marginTop: "22px", maxWidth: "620px" }}>
-          For thirty years, Lemlem High School has paired rigorous national academics with modern
-          tools — serving students across Ethiopia with a campus portal built like real software.
-        </p>
-
-        <div className="flex flex-wrap items-center justify-center" style={{ gap: "12px", marginTop: "32px" }}>
-          <a href="#admissions" className="btn-primary flex items-center" style={{ padding: "12px 22px", gap: "8px", fontSize: "14.5px" }}>
-            Apply for 2026/27
-            <ArrowRight size={16} />
+        <Reveal delay={100}>
+          <a href="#about" className="pill inline-flex items-center group" style={{ padding: "6px 14px 6px 8px", gap: "8px", marginBottom: "28px" }}>
+            <span className="pill-icon group-hover:rotate-12 transition-transform duration-300">
+              <Sparkles size={12} />
+            </span>
+            <span className="text-secondary" style={{ fontSize: "12.5px" }}>
+              30 Years of Excellence (1996–2026) · 2026/27 Portal Open
+            </span>
           </a>
-          <a href="#about" className="btn-glass flex items-center" style={{ padding: "12px 20px", gap: "10px", fontSize: "14.5px" }}>
-            Explore 30th Anniversary Legacy
-            <Kbd>⌘L</Kbd>
-          </a>
-        </div>
+        </Reveal>
 
-        <div className="flex items-center justify-center flex-wrap" style={{ gap: "22px", marginTop: "36px" }}>
-          {["EGSECE-aligned curriculum", "Grades 9–12", "Addis Ababa, Ethiopia"].map((t) => (
-            <div key={t} className="flex items-center text-tertiary" style={{ gap: "7px", fontSize: "12.5px" }}>
-              <Check size={13} className="text-accent" />
-              {t}
-            </div>
-          ))}
-        </div>
+        <Reveal delay={200}>
+          <h1 className="gradient-text mx-auto" style={{ fontSize: "clamp(2.5rem, 6vw, 4.25rem)", fontWeight: 650, lineHeight: 1.04, letterSpacing: "-0.03em", maxWidth: "800px" }}>
+            Built for the future
+            <br />
+            of education in Ethiopia.
+          </h1>
+        </Reveal>
 
-        <HeroDashboard />
+        <Reveal delay={300}>
+          <p className="text-secondary mx-auto" style={{ fontSize: "17px", lineHeight: 1.6, marginTop: "22px", maxWidth: "620px" }}>
+            For thirty years, Lemlem High School has paired rigorous national academics with modern
+            tools — serving students across Ethiopia with a campus portal built like real software.
+          </p>
+        </Reveal>
+
+        <Reveal delay={400}>
+          <div className="flex flex-wrap items-center justify-center" style={{ gap: "12px", marginTop: "32px" }}>
+            <a href="#admissions" className="btn-primary flex items-center group" style={{ padding: "12px 22px", gap: "8px", fontSize: "14.5px" }}>
+              Apply for 2026/27
+              <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform duration-200" />
+            </a>
+            <a href="#about" className="btn-glass flex items-center" style={{ padding: "12px 20px", gap: "10px", fontSize: "14.5px" }}>
+              Explore 30th Anniversary Legacy
+              <Kbd>⌘L</Kbd>
+            </a>
+          </div>
+        </Reveal>
+
+        <Reveal delay={500}>
+          <div className="flex items-center justify-center flex-wrap" style={{ gap: "22px", marginTop: "36px" }}>
+            {["EGSECE-aligned curriculum", "Grades 9–12", "Addis Ababa, Ethiopia"].map((t) => (
+              <div key={t} className="flex items-center text-tertiary hover:text-primary transition-colors duration-200" style={{ gap: "7px", fontSize: "12.5px" }}>
+                <Check size={13} className="text-accent" />
+                {t}
+              </div>
+            ))}
+          </div>
+        </Reveal>
+
+        <Reveal delay={600}>
+          <HeroDashboard />
+        </Reveal>
       </div>
     </section>
   );
@@ -452,12 +502,14 @@ function TimelineCard() {
         </span>
       </div>
 
-      <h3 className="text-primary" style={{ fontSize: "22px", fontWeight: 600, letterSpacing: "-0.01em" }}>
-        {item.title}
-      </h3>
-      <p className="text-secondary" style={{ fontSize: "14.5px", lineHeight: 1.6, marginTop: "8px", minHeight: "44px" }}>
-        {item.body}
-      </p>
+      <div key={item.year} className="animate-fade-in-up">
+        <h3 className="text-primary" style={{ fontSize: "22px", fontWeight: 600, letterSpacing: "-0.01em" }}>
+          {item.title}
+        </h3>
+        <p className="text-secondary" style={{ fontSize: "14.5px", lineHeight: 1.6, marginTop: "8px", minHeight: "44px" }}>
+          {item.body}
+        </p>
+      </div>
 
       <input
         type="range"
@@ -507,7 +559,7 @@ function AlumniCard() {
         </span>
       </div>
 
-      <div className="lhs-mono gradient-text" style={{ fontSize: "34px", fontWeight: 650, letterSpacing: "-0.02em" }}>
+      <div className="lhs-mono gradient-text transition-all duration-300" style={{ fontSize: "34px", fontWeight: 650, letterSpacing: "-0.02em" }}>
         {ticker.toLocaleString()}
       </div>
       <div className="text-tertiary" style={{ fontSize: "12.5px", marginTop: "2px", marginBottom: "18px" }}>
@@ -556,7 +608,7 @@ function StemCard() {
           </div>
         </div>
 
-        <div className="code-block lhs-mono">
+        <div className="code-block lhs-mono transition-all duration-300">
           <div className="code-titlebar">
             <span className="code-dot" style={{ background: "#E5555A" }} />
             <span className="code-dot" style={{ background: "#E8B34C" }} />
@@ -565,7 +617,7 @@ function StemCard() {
               innovation_hub.json
             </span>
           </div>
-          <pre className="code-pre">
+          <pre key={active.key} className="code-pre animate-fade-in">
 {`{
   "program": "`}<span className="tok-str">{active.name}</span>{`",
   "students_enrolled": `}<span className="tok-num">{active.students}</span>{`,
@@ -583,19 +635,27 @@ function BentoShowcase() {
   return (
     <section id="about" className="relative" style={{ padding: "80px 20px" }}>
       <div className="max-w-7xl mx-auto">
-        <SectionEyebrow>1996 — 2026</SectionEyebrow>
-        <h2 className="text-primary" style={{ fontSize: "clamp(1.9rem, 3.4vw, 2.6rem)", fontWeight: 600, letterSpacing: "-0.02em", marginTop: "10px" }}>
-          Three decades. One mission.
-        </h2>
-        <p className="text-secondary" style={{ fontSize: "15.5px", marginTop: "10px", maxWidth: "560px" }}>
-          Every milestone below is tracked in both the Gregorian and Ethiopian calendars —
-          the same way the school year runs.
-        </p>
+        <Reveal>
+          <SectionEyebrow>1996 — 2026</SectionEyebrow>
+          <h2 className="text-primary" style={{ fontSize: "clamp(1.9rem, 3.4vw, 2.6rem)", fontWeight: 600, letterSpacing: "-0.02em", marginTop: "10px" }}>
+            Three decades. One mission.
+          </h2>
+          <p className="text-secondary" style={{ fontSize: "15.5px", marginTop: "10px", maxWidth: "560px" }}>
+            Every milestone below is tracked in both the Gregorian and Ethiopian calendars —
+            the same way the school year runs.
+          </p>
+        </Reveal>
 
         <div className="grid grid-cols-12" style={{ gap: "16px", marginTop: "36px" }}>
-          <TimelineCard />
-          <AlumniCard />
-          <StemCard />
+          <Reveal className="col-span-12 md:col-span-7" delay={150}>
+            <TimelineCard />
+          </Reveal>
+          <Reveal className="col-span-12 md:col-span-5" delay={300}>
+            <AlumniCard />
+          </Reveal>
+          <Reveal className="col-span-12" delay={200}>
+            <StemCard />
+          </Reveal>
         </div>
       </div>
     </section>
@@ -610,26 +670,30 @@ function FeaturesGrid() {
   return (
     <section id="academics" style={{ padding: "80px 20px" }}>
       <div className="max-w-7xl mx-auto">
-        <SectionEyebrow>Academic pillars</SectionEyebrow>
-        <h2 className="text-primary" style={{ fontSize: "clamp(1.9rem, 3.4vw, 2.6rem)", fontWeight: 600, letterSpacing: "-0.02em", marginTop: "10px" }}>
-          Everything a student needs, none of the noise.
-        </h2>
+        <Reveal>
+          <SectionEyebrow>Academic pillars</SectionEyebrow>
+          <h2 className="text-primary" style={{ fontSize: "clamp(1.9rem, 3.4vw, 2.6rem)", fontWeight: 600, letterSpacing: "-0.02em", marginTop: "10px" }}>
+            Everything a student needs, none of the noise.
+          </h2>
+        </Reveal>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3" style={{ gap: "16px", marginTop: "36px" }}>
-          {PILLARS.map((p) => {
+          {PILLARS.map((p, index) => {
             const Icon = p.icon;
             return (
-              <SpotlightCard key={p.title} className="pillar-card" style={{ padding: "24px" }}>
-                <div className="pillar-icon">
-                  <Icon size={18} className="text-accent" />
-                </div>
-                <h3 className="text-primary" style={{ fontSize: "16px", fontWeight: 600, marginTop: "16px", letterSpacing: "-0.01em" }}>
-                  {p.title}
-                </h3>
-                <p className="text-secondary" style={{ fontSize: "13.5px", lineHeight: 1.6, marginTop: "8px" }}>
-                  {p.desc}
-                </p>
-              </SpotlightCard>
+              <Reveal key={p.title} delay={100 * (index % 3)}>
+                <SpotlightCard className="pillar-card group" style={{ padding: "24px" }}>
+                  <div className="pillar-icon group-hover:scale-110 group-hover:bg-[rgba(16,185,129,0.22)] transition-all duration-300">
+                    <Icon size={18} className="text-accent" />
+                  </div>
+                  <h3 className="text-primary group-hover:text-white transition-colors duration-200" style={{ fontSize: "16px", fontWeight: 600, marginTop: "16px", letterSpacing: "-0.01em" }}>
+                    {p.title}
+                  </h3>
+                  <p className="text-secondary" style={{ fontSize: "13.5px", lineHeight: 1.6, marginTop: "8px" }}>
+                    {p.desc}
+                  </p>
+                </SpotlightCard>
+              </Reveal>
             );
           })}
         </div>
@@ -654,7 +718,7 @@ function ProgressRail({ step }) {
           <Fragment key={label}>
             <div className="flex items-center" style={{ gap: "9px" }}>
               <span className={`step-dot lhs-mono ${state}`}>{state === "done" ? <Check size={12} /> : n}</span>
-              <span className={`text-${state === "todo" ? "tertiary" : "primary"} hidden sm:inline`} style={{ fontSize: "13px" }}>
+              <span className={`text-${state === "todo" ? "tertiary" : "primary"} hidden sm:inline transition-colors duration-300`} style={{ fontSize: "13px" }}>
                 {label}
               </span>
             </div>
@@ -674,7 +738,7 @@ function Field({ label, error, children }) {
       </span>
       {children}
       {error && (
-        <span className="flex items-center error-text" style={{ gap: "5px", marginTop: "6px", fontSize: "12px" }}>
+        <span className="flex items-center error-text animate-fade-in" style={{ gap: "5px", marginTop: "6px", fontSize: "12px" }}>
           <X size={12} /> {error}
         </span>
       )}
@@ -796,7 +860,7 @@ function RegistrationPortal() {
     <section id="admissions" style={{ padding: "80px 20px" }}>
       <div className="max-w-7xl mx-auto">
         <div className="grid lg:grid-cols-12" style={{ gap: "40px" }}>
-          <div className="lg:col-span-4" style={{ gridColumn: "span 4" }}>
+          <Reveal className="lg:col-span-4" style={{ gridColumn: "span 4" }}>
             <SectionEyebrow>2026/27 admissions</SectionEyebrow>
             <h2 className="text-primary" style={{ fontSize: "clamp(1.9rem, 3.2vw, 2.4rem)", fontWeight: 600, letterSpacing: "-0.02em", marginTop: "10px" }}>
               Registration, built like software.
@@ -813,9 +877,9 @@ function RegistrationPortal() {
                 </div>
               ))}
             </div>
-          </div>
+          </Reveal>
 
-          <div className="lg:col-span-8 glass" style={{ gridColumn: "span 8", borderRadius: "20px", padding: "28px" }}>
+          <Reveal className="lg:col-span-8 glass" delay={200} style={{ gridColumn: "span 8", borderRadius: "20px", padding: "28px" }}>
             <div className="segmented">
               <button
                 className={`segment lhs-mono ${mode === "new" ? "active" : ""}`}
@@ -841,212 +905,214 @@ function RegistrationPortal() {
               <ProgressRail step={step} />
             </div>
 
-            {step === 1 && (
-              <div>
-                <Field label="Student full name" error={errors.fullName}>
-                  <input
-                    className={`field ${errors.fullName ? "error" : ""}`}
-                    placeholder="e.g. Selamawit Bekele"
-                    value={form.fullName}
-                    onChange={(e) => set("fullName", e.target.value)}
-                  />
-                </Field>
-
-                <div className="grid sm:grid-cols-2" style={{ gap: "0 16px" }}>
-                  <Field label="Date of birth" error={errors.dob}>
-                    <input type="date" className={`field ${errors.dob ? "error" : ""}`} value={form.dob} onChange={(e) => set("dob", e.target.value)} />
+            <div key={step} className="animate-fade-in-up">
+              {step === 1 && (
+                <div>
+                  <Field label="Student full name" error={errors.fullName}>
+                    <input
+                      className={`field ${errors.fullName ? "error" : ""}`}
+                      placeholder="e.g. Selamawit Bekele"
+                      value={form.fullName}
+                      onChange={(e) => set("fullName", e.target.value)}
+                    />
                   </Field>
-                  <Field label={mode === "new" ? "Previous school" : "Existing student ID"} error={mode === "new" ? errors.previousSchool : errors.studentId}>
-                    {mode === "new" ? (
-                      <input
-                        className={`field ${errors.previousSchool ? "error" : ""}`}
-                        placeholder="e.g. Bole Elementary School"
-                        value={form.previousSchool}
-                        onChange={(e) => set("previousSchool", e.target.value)}
-                      />
-                    ) : (
-                      <input
-                        className={`field lhs-mono ${errors.studentId ? "error" : ""}`}
-                        placeholder="e.g. LHS-2023-04812"
-                        value={form.studentId}
-                        onChange={(e) => set("studentId", e.target.value)}
-                      />
-                    )}
-                  </Field>
-                </div>
 
-                <span className="text-secondary" style={{ fontSize: "13px", display: "block", marginBottom: "10px" }}>
-                  Grade for 2026/27
-                </span>
-                <div className="flex flex-wrap" style={{ gap: "8px", marginBottom: errors.grade ? "6px" : "0" }}>
-                  {GRADES.map((g) => (
-                    <button key={g} onClick={() => set("grade", g)} className={`grade-chip lhs-mono ${form.grade === g ? "active" : ""}`}>
-                      Grade {g}
-                    </button>
-                  ))}
-                </div>
-                {errors.grade && (
-                  <span className="flex items-center error-text" style={{ gap: "5px", marginTop: "8px", fontSize: "12px" }}>
-                    <X size={12} /> {errors.grade}
+                  <div className="grid sm:grid-cols-2" style={{ gap: "0 16px" }}>
+                    <Field label="Date of birth" error={errors.dob}>
+                      <input type="date" className={`field ${errors.dob ? "error" : ""}`} value={form.dob} onChange={(e) => set("dob", e.target.value)} />
+                    </Field>
+                    <Field label={mode === "new" ? "Previous school" : "Existing student ID"} error={mode === "new" ? errors.previousSchool : errors.studentId}>
+                      {mode === "new" ? (
+                        <input
+                          className={`field ${errors.previousSchool ? "error" : ""}`}
+                          placeholder="e.g. Bole Elementary School"
+                          value={form.previousSchool}
+                          onChange={(e) => set("previousSchool", e.target.value)}
+                        />
+                      ) : (
+                        <input
+                          className={`field lhs-mono ${errors.studentId ? "error" : ""}`}
+                          placeholder="e.g. LHS-2023-04812"
+                          value={form.studentId}
+                          onChange={(e) => set("studentId", e.target.value)}
+                        />
+                      )}
+                    </Field>
+                  </div>
+
+                  <span className="text-secondary" style={{ fontSize: "13px", display: "block", marginBottom: "10px" }}>
+                    Grade for 2026/27
                   </span>
-                )}
-              </div>
-            )}
+                  <div className="flex flex-wrap" style={{ gap: "8px", marginBottom: errors.grade ? "6px" : "0" }}>
+                    {GRADES.map((g) => (
+                      <button key={g} onClick={() => set("grade", g)} className={`grade-chip lhs-mono ${form.grade === g ? "active" : ""}`}>
+                        Grade {g}
+                      </button>
+                    ))}
+                  </div>
+                  {errors.grade && (
+                    <span className="flex items-center error-text animate-fade-in" style={{ gap: "5px", marginTop: "8px", fontSize: "12px" }}>
+                      <X size={12} /> {errors.grade}
+                    </span>
+                  )}
+                </div>
+              )}
 
-            {step === 2 && (
-              <div>
-                <div className="grid sm:grid-cols-2" style={{ gap: "0 16px" }}>
-                  <Field label="Guardian full name" error={errors.guardianName}>
+              {step === 2 && (
+                <div>
+                  <div className="grid sm:grid-cols-2" style={{ gap: "0 16px" }}>
+                    <Field label="Guardian full name" error={errors.guardianName}>
+                      <input
+                        className={`field ${errors.guardianName ? "error" : ""}`}
+                        placeholder="e.g. Almaz Tesfaye"
+                        value={form.guardianName}
+                        onChange={(e) => set("guardianName", e.target.value)}
+                      />
+                    </Field>
+                    <Field label="Relationship to student" error={errors.relationship}>
+                      <input
+                        className={`field ${errors.relationship ? "error" : ""}`}
+                        placeholder="e.g. Mother, Father, Guardian"
+                        value={form.relationship}
+                        onChange={(e) => set("relationship", e.target.value)}
+                      />
+                    </Field>
+                  </div>
+                  <div className="grid sm:grid-cols-2" style={{ gap: "0 16px" }}>
+                    <Field label="Phone number" error={errors.phone}>
+                      <input
+                        className={`field lhs-mono ${errors.phone ? "error" : ""}`}
+                        placeholder="+251 9XX XXX XXX"
+                        value={form.phone}
+                        onChange={(e) => set("phone", e.target.value)}
+                      />
+                    </Field>
+                    <Field label="Email address" error={errors.email}>
+                      <input
+                        className={`field ${errors.email ? "error" : ""}`}
+                        placeholder="name@example.com"
+                        value={form.email}
+                        onChange={(e) => set("email", e.target.value)}
+                      />
+                    </Field>
+                  </div>
+                  <Field label="Home address" error={errors.address}>
                     <input
-                      className={`field ${errors.guardianName ? "error" : ""}`}
-                      placeholder="e.g. Almaz Tesfaye"
-                      value={form.guardianName}
-                      onChange={(e) => set("guardianName", e.target.value)}
-                    />
-                  </Field>
-                  <Field label="Relationship to student" error={errors.relationship}>
-                    <input
-                      className={`field ${errors.relationship ? "error" : ""}`}
-                      placeholder="e.g. Mother, Father, Guardian"
-                      value={form.relationship}
-                      onChange={(e) => set("relationship", e.target.value)}
+                      className={`field ${errors.address ? "error" : ""}`}
+                      placeholder="Sub-city, woreda, house number"
+                      value={form.address}
+                      onChange={(e) => set("address", e.target.value)}
                     />
                   </Field>
                 </div>
-                <div className="grid sm:grid-cols-2" style={{ gap: "0 16px" }}>
-                  <Field label="Phone number" error={errors.phone}>
-                    <input
-                      className={`field lhs-mono ${errors.phone ? "error" : ""}`}
-                      placeholder="+251 9XX XXX XXX"
-                      value={form.phone}
-                      onChange={(e) => set("phone", e.target.value)}
-                    />
-                  </Field>
-                  <Field label="Email address" error={errors.email}>
-                    <input
-                      className={`field ${errors.email ? "error" : ""}`}
-                      placeholder="name@example.com"
-                      value={form.email}
-                      onChange={(e) => set("email", e.target.value)}
-                    />
-                  </Field>
-                </div>
-                <Field label="Home address" error={errors.address}>
-                  <input
-                    className={`field ${errors.address ? "error" : ""}`}
-                    placeholder="Sub-city, woreda, house number"
-                    value={form.address}
-                    onChange={(e) => set("address", e.target.value)}
-                  />
-                </Field>
-              </div>
-            )}
+              )}
 
-            {step === 3 && (
-              <div>
-                {DOCS.map((d) => {
-                  const f = files[d.key];
-                  return (
-                    <div
-                      key={d.key}
-                      onDragOver={(e) => {
-                        e.preventDefault();
-                        setDragKey(d.key);
-                      }}
-                      onDragLeave={() => setDragKey(null)}
-                      onDrop={(e) => handleDrop(e, d.key)}
-                      className={`dropzone ${dragKey === d.key ? "drag" : ""} ${errors[d.key] ? "error" : ""}`}
-                      style={{ marginBottom: "12px", padding: "16px" }}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center" style={{ gap: "12px" }}>
-                          <span className="doc-icon">
-                            <FileText size={16} className="text-accent" />
-                          </span>
-                          <div>
-                            <div className="text-primary" style={{ fontSize: "13.5px", fontWeight: 500 }}>
-                              {d.label}
-                            </div>
-                            <div className="text-tertiary" style={{ fontSize: "12px" }}>
-                              {f ? f.name : d.hint}
+              {step === 3 && (
+                <div>
+                  {DOCS.map((d) => {
+                    const f = files[d.key];
+                    return (
+                      <div
+                        key={d.key}
+                        onDragOver={(e) => {
+                          e.preventDefault();
+                          setDragKey(d.key);
+                        }}
+                        onDragLeave={() => setDragKey(null)}
+                        onDrop={(e) => handleDrop(e, d.key)}
+                        className={`dropzone ${dragKey === d.key ? "drag" : ""} ${errors[d.key] ? "error" : ""}`}
+                        style={{ marginBottom: "12px", padding: "16px" }}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center" style={{ gap: "12px" }}>
+                            <span className="doc-icon">
+                              <FileText size={16} className="text-accent" />
+                            </span>
+                            <div>
+                              <div className="text-primary" style={{ fontSize: "13.5px", fontWeight: 500 }}>
+                                {d.label}
+                              </div>
+                              <div className="text-tertiary" style={{ fontSize: "12px" }}>
+                                {f ? f.name : d.hint}
+                              </div>
                             </div>
                           </div>
+                          <label className="btn-glass upload-btn lhs-mono">
+                            <UploadCloud size={13} />
+                            {f && f.progress === 100 ? "Replace" : "Browse"}
+                            <input type="file" style={{ display: "none" }} onChange={(e) => handleBrowse(e, d.key)} />
+                          </label>
                         </div>
-                        <label className="btn-glass upload-btn lhs-mono">
-                          <UploadCloud size={13} />
-                          {f && f.progress === 100 ? "Replace" : "Browse"}
-                          <input type="file" style={{ display: "none" }} onChange={(e) => handleBrowse(e, d.key)} />
-                        </label>
+                        {f && (
+                          <div className="upload-track" style={{ marginTop: "12px" }}>
+                            <div className="upload-fill" style={{ width: `${f.progress}%` }} />
+                          </div>
+                        )}
+                        {errors[d.key] && (
+                          <span className="flex items-center error-text animate-fade-in" style={{ gap: "5px", marginTop: "8px", fontSize: "12px" }}>
+                            <X size={12} /> {errors[d.key]}
+                          </span>
+                        )}
                       </div>
-                      {f && (
-                        <div className="upload-track" style={{ marginTop: "12px" }}>
-                          <div className="upload-fill" style={{ width: `${f.progress}%` }} />
-                        </div>
-                      )}
-                      {errors[d.key] && (
-                        <span className="flex items-center error-text" style={{ gap: "5px", marginTop: "8px", fontSize: "12px" }}>
-                          <X size={12} /> {errors[d.key]}
-                        </span>
-                      )}
-                    </div>
-                  );
-                })}
-                <p className="text-tertiary" style={{ fontSize: "12px", marginTop: "4px" }}>
-                  Drag a file onto any box, or use Browse. Accepted: PDF, JPG, PNG — up to 10MB.
-                </p>
-              </div>
-            )}
+                    );
+                  })}
+                  <p className="text-tertiary" style={{ fontSize: "12px", marginTop: "4px" }}>
+                    Drag a file onto any box, or use Browse. Accepted: PDF, JPG, PNG — up to 10MB.
+                  </p>
+                </div>
+              )}
 
-            {step === 4 && (
-              <div className="ticket">
-                <div className="flex items-center justify-between" style={{ marginBottom: "18px" }}>
-                  <div className="flex items-center" style={{ gap: "10px" }}>
-                    <span className="ticket-check">
-                      <CheckCircle2 size={18} />
+              {step === 4 && (
+                <div className="ticket animate-scale-up">
+                  <div className="flex items-center justify-between" style={{ marginBottom: "18px" }}>
+                    <div className="flex items-center" style={{ gap: "10px" }}>
+                      <span className="ticket-check">
+                        <CheckCircle2 size={18} />
+                      </span>
+                      <div>
+                        <div className="text-primary" style={{ fontSize: "15px", fontWeight: 600 }}>
+                          Application received
+                        </div>
+                        <div className="text-tertiary" style={{ fontSize: "12px" }}>
+                          Status: pending review
+                        </div>
+                      </div>
+                    </div>
+                    <span className="lhs-mono text-accent" style={{ fontSize: "13px" }}>
+                      {appId}
                     </span>
-                    <div>
-                      <div className="text-primary" style={{ fontSize: "15px", fontWeight: 600 }}>
-                        Application received
-                      </div>
-                      <div className="text-tertiary" style={{ fontSize: "12px" }}>
-                        Status: pending review
-                      </div>
-                    </div>
                   </div>
-                  <span className="lhs-mono text-accent" style={{ fontSize: "13px" }}>
-                    {appId}
-                  </span>
-                </div>
 
-                <div className="ticket-divider" />
+                  <div className="ticket-divider" />
 
-                <div className="grid sm:grid-cols-2" style={{ gap: "14px 24px", padding: "18px 0" }}>
-                  {[
-                    ["Applicant", form.fullName || "—"],
-                    ["Grade", form.grade ? `Grade ${form.grade}` : "—"],
-                    ["Track", mode === "new" ? "New student" : "Returning student"],
-                    ["Guardian", form.guardianName || "—"],
-                    ["Phone", form.phone || "—"],
-                    ["Email", form.email || "—"],
-                  ].map(([label, val]) => (
-                    <div key={label}>
-                      <div className="text-tertiary" style={{ fontSize: "11.5px", marginBottom: "3px" }}>
-                        {label}
+                  <div className="grid sm:grid-cols-2" style={{ gap: "14px 24px", padding: "18px 0" }}>
+                    {[
+                      ["Applicant", form.fullName || "—"],
+                      ["Grade", form.grade ? `Grade ${form.grade}` : "—"],
+                      ["Track", mode === "new" ? "New student" : "Returning student"],
+                      ["Guardian", form.guardianName || "—"],
+                      ["Phone", form.phone || "—"],
+                      ["Email", form.email || "—"],
+                    ].map(([label, val]) => (
+                      <div key={label}>
+                        <div className="text-tertiary" style={{ fontSize: "11.5px", marginBottom: "3px" }}>
+                          {label}
+                        </div>
+                        <div className="text-primary" style={{ fontSize: "13.5px" }}>
+                          {val}
+                        </div>
                       </div>
-                      <div className="text-primary" style={{ fontSize: "13.5px" }}>
-                        {val}
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
 
-                <div className="ticket-divider" />
+                  <div className="ticket-divider" />
 
-                <div className="flex items-center text-tertiary" style={{ gap: "8px", fontSize: "12px", paddingTop: "16px" }}>
-                  <Calendar size={13} />A confirmation has been sent — decisions are shared within 3 business days.
+                  <div className="flex items-center text-tertiary" style={{ gap: "8px", fontSize: "12px", paddingTop: "16px" }}>
+                    <Calendar size={13} />A confirmation has been sent — decisions are shared within 3 business days.
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
 
             <div className="flex items-center justify-between" style={{ marginTop: "26px" }}>
               {step > 1 && step < 4 ? (
@@ -1073,7 +1139,7 @@ function RegistrationPortal() {
                 </button>
               )}
             </div>
-          </div>
+          </Reveal>
         </div>
       </div>
     </section>
@@ -1088,67 +1154,69 @@ function Footer() {
   return (
     <footer id="footer" className="grid-bg" style={{ borderTop: "1px solid var(--border-glass)", padding: "56px 20px 28px", position: "relative" }}>
       <div className="max-w-7xl mx-auto relative">
-        <div className="grid md:grid-cols-4" style={{ gap: "32px", marginBottom: "40px" }}>
-          <div style={{ gridColumn: "span 2" }}>
-            <div className="flex items-center" style={{ gap: "10px", marginBottom: "14px" }}>
-              <span className="logo-mark lhs-mono">LH</span>
-              <span className="text-primary" style={{ fontWeight: 600, fontSize: "14.5px" }}>
-                Lemlem High School
-              </span>
+        <Reveal>
+          <div className="grid md:grid-cols-4" style={{ gap: "32px", marginBottom: "40px" }}>
+            <div style={{ gridColumn: "span 2" }}>
+              <div className="flex items-center" style={{ gap: "10px", marginBottom: "14px" }}>
+                <span className="logo-mark lhs-mono">LH</span>
+                <span className="text-primary" style={{ fontWeight: 600, fontSize: "14.5px" }}>
+                  Lemlem High School
+                </span>
+              </div>
+              <p className="text-tertiary" style={{ fontSize: "13px", lineHeight: 1.6, maxWidth: "320px" }}>
+                Independent secondary school serving Grades 9–12 in Addis Ababa, Ethiopia,
+                since 1996 · 1989 E.C.
+              </p>
+              <div className="flex" style={{ gap: "10px", marginTop: "18px" }}>
+                {[Twitter, Linkedin, Github].map((Icon, i) => (
+                  <a key={i} href="#top" className="social-btn" aria-label="social link">
+                    <Icon size={14} />
+                  </a>
+                ))}
+              </div>
             </div>
-            <p className="text-tertiary" style={{ fontSize: "13px", lineHeight: 1.6, maxWidth: "320px" }}>
-              Independent secondary school serving Grades 9–12 in Addis Ababa, Ethiopia,
-              since 1996 · 1989 E.C.
-            </p>
-            <div className="flex" style={{ gap: "10px", marginTop: "18px" }}>
-              {[Twitter, Linkedin, Github].map((Icon, i) => (
-                <a key={i} href="#top" className="social-btn" aria-label="social link">
-                  <Icon size={14} />
+
+            <div>
+              <div className="text-primary" style={{ fontSize: "13px", fontWeight: 600, marginBottom: "14px" }}>
+                Quick links
+              </div>
+              {NAV_LINKS.map((l) => (
+                <a key={l.label} href={l.href} className="footer-link text-tertiary">
+                  {l.label}
                 </a>
               ))}
             </div>
+
+            <div>
+              <div className="text-primary" style={{ fontSize: "13px", fontWeight: 600, marginBottom: "14px" }}>
+                Contact
+              </div>
+              <div className="flex items-center text-tertiary footer-link" style={{ gap: "8px" }}>
+                <MapPin size={13} /> Addis Ababa, Ethiopia
+              </div>
+              <div className="flex items-center text-tertiary footer-link" style={{ gap: "8px" }}>
+                <Phone size={13} /> +251 11 555 0134
+              </div>
+              <div className="flex items-center text-tertiary footer-link" style={{ gap: "8px" }}>
+                <Mail size={13} /> admissions@lemlemhigh.edu.et
+              </div>
+            </div>
           </div>
 
-          <div>
-            <div className="text-primary" style={{ fontSize: "13px", fontWeight: 600, marginBottom: "14px" }}>
-              Quick links
+          <div className="footer-bottom flex items-center justify-between flex-wrap" style={{ paddingTop: "22px", gap: "14px" }}>
+            <div className="flex items-center text-tertiary" style={{ gap: "8px", fontSize: "12px" }}>
+              <span className="dot-live" />
+              Portal status: all systems operational
             </div>
-            {NAV_LINKS.map((l) => (
-              <a key={l.label} href={l.href} className="footer-link text-tertiary">
-                {l.label}
-              </a>
-            ))}
+            <span className="text-tertiary lhs-mono" style={{ fontSize: "12px" }}>
+              © 2026 Lemlem High School
+            </span>
           </div>
 
-          <div>
-            <div className="text-primary" style={{ fontSize: "13px", fontWeight: 600, marginBottom: "14px" }}>
-              Contact
-            </div>
-            <div className="flex items-center text-tertiary footer-link" style={{ gap: "8px" }}>
-              <MapPin size={13} /> Addis Ababa, Ethiopia
-            </div>
-            <div className="flex items-center text-tertiary footer-link" style={{ gap: "8px" }}>
-              <Phone size={13} /> +251 11 555 0134
-            </div>
-            <div className="flex items-center text-tertiary footer-link" style={{ gap: "8px" }}>
-              <Mail size={13} /> admissions@lemlemhigh.edu.et
-            </div>
+          <div className="watermark lhs-mono" aria-hidden="true">
+            ልምለም · 30
           </div>
-        </div>
-
-        <div className="footer-bottom flex items-center justify-between flex-wrap" style={{ paddingTop: "22px", gap: "14px" }}>
-          <div className="flex items-center text-tertiary" style={{ gap: "8px", fontSize: "12px" }}>
-            <span className="dot-live" />
-            Portal status: all systems operational
-          </div>
-          <span className="text-tertiary lhs-mono" style={{ fontSize: "12px" }}>
-            © 2026 Lemlem High School
-          </span>
-        </div>
-
-        <div className="watermark lhs-mono" aria-hidden="true">
-          ልምለም · 30
-        </div>
+        </Reveal>
       </div>
     </footer>
   );
@@ -1203,6 +1271,55 @@ function App() {
         .lhs input { font-family: var(--font-sans); }
         html { scroll-behavior: smooth; }
 
+        /* Smooth Scroll reveal animations */
+        .reveal-box {
+          opacity: 0;
+          transform: translateY(28px);
+          filter: blur(6px);
+          transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+                      transform 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+                      filter 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+          will-change: opacity, transform, filter;
+        }
+
+        .reveal-box.is-visible {
+          opacity: 1;
+          transform: translateY(0);
+          filter: blur(0px);
+        }
+
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+
+        @keyframes fadeInUp {
+          from { opacity: 0; transform: translateY(12px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes scaleUp {
+          from { opacity: 0; transform: scale(0.96); }
+          to { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes floatSlow {
+          0%, 100% { transform: translate(-50%, 0); }
+          50% { transform: translate(-50%, -18px); }
+        }
+
+        @keyframes floatReverse {
+          0%, 100% { transform: translate(0, 0); }
+          50% { transform: translate(-14px, 14px); }
+        }
+
+        .animate-fade-in { animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .animate-fade-in-up { animation: fadeInUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .animate-scale-up { animation: scaleUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+        .float-slow { animation: floatSlow 12s ease-in-out infinite; }
+        .float-reverse { animation: floatReverse 14s ease-in-out infinite; }
+
         .lhs-mono { font-family: var(--font-mono); }
         .text-primary { color: var(--text-primary); }
         .text-secondary { color: #a7f3d0; }
@@ -1250,7 +1367,7 @@ function App() {
         section, header, footer { position: relative; z-index: 1; }
 
         /* nav */
-        .nav-shell { background: transparent; border-bottom: 1px solid transparent; transition: background .3s ease, border-color .3s ease; }
+        .nav-shell { background: transparent; border-bottom: 1px solid transparent; transition: background .35s ease, border-color .35s ease, backdrop-filter .35s ease; }
         .nav-scrolled { background: rgba(2, 6, 4, 0.85); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid var(--border-glass); }
         .logo-mark {
           width: 30px; height: 30px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center;
@@ -1272,9 +1389,9 @@ function App() {
           background: linear-gradient(180deg, #10b981, #059669);
           color: #022c18; font-weight: 600; border: 1px solid rgba(255,255,255,0.15);
           box-shadow: 0 1px 0 rgba(255,255,255,0.2) inset, 0 10px 30px -10px rgba(16, 185, 129, 0.5);
-          position: relative; overflow: hidden; transition: transform .2s ease, box-shadow .2s ease;
+          position: relative; overflow: hidden; transition: transform .25s ease, box-shadow .25s ease;
         }
-        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 1px 0 rgba(255,255,255,0.3) inset, 0 14px 34px -8px rgba(16, 185, 129, 0.7); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 1px 0 rgba(255,255,255,0.3) inset, 0 14px 34px -8px rgba(16, 185, 129, 0.7); }
         .btn-primary::after {
           content: ''; position: absolute; top: 0; left: -60%; width: 40%; height: 100%;
           background: linear-gradient(115deg, transparent, rgba(255,255,255,0.3), transparent);
@@ -1285,13 +1402,13 @@ function App() {
         .btn-glass {
           display: inline-flex; align-items: center; justify-content: center; border-radius: 10px;
           background: var(--bg-card); border: 1px solid var(--border-glass); color: var(--text-primary);
-          font-weight: 500; transition: background .2s, border-color .2s, transform .2s;
+          font-weight: 500; transition: background .25s, border-color .25s, transform .25s;
         }
-        .btn-glass:hover { background: var(--bg-card-hover); border-color: var(--border-glass-hover); transform: translateY(-1px); }
+        .btn-glass:hover { background: var(--bg-card-hover); border-color: var(--border-glass-hover); transform: translateY(-2px); }
 
         /* pill badge */
         .pill { border-radius: 999px; border: 1px solid var(--border-glass); background: var(--bg-card); transition: border-color .25s, background .25s, transform .25s; }
-        .pill:hover { border-color: rgba(16,185,129,0.55); background: rgba(16,185,129,0.12); transform: translateY(-1px); }
+        .pill:hover { border-color: rgba(16,185,129,0.55); background: rgba(16,185,129,0.12); transform: translateY(-2px); }
         .pill-icon { color: var(--accent-blue-bright); display: inline-flex; }
 
         .kbd {
@@ -1302,8 +1419,8 @@ function App() {
 
         /* glass surfaces + spotlight */
         .glass { background: var(--bg-card); border: 1px solid var(--border-glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
-        .spot-card { position: relative; overflow: hidden; border-radius: 18px; transition: border-color .3s ease, transform .3s ease; }
-        .spot-card:hover { border-color: var(--border-glass-hover); transform: translateY(-2px); }
+        .spot-card { position: relative; overflow: hidden; border-radius: 18px; transition: border-color .35s ease, transform .35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow .35s ease; }
+        .spot-card:hover { border-color: var(--border-glass-hover); transform: translateY(-4px); box-shadow: 0 20px 40px -20px rgba(0,0,0,0.6); }
         .spot-card::before {
           content: ''; position: absolute; inset: 0; opacity: 0; transition: opacity .35s ease; pointer-events: none;
           background: radial-gradient(360px circle at var(--mx,50%) var(--my,50%), rgba(16, 185, 129, 0.12), transparent 45%);
@@ -1342,12 +1459,15 @@ function App() {
         .lhs-range::-webkit-slider-thumb {
           -webkit-appearance: none; width: 15px; height: 15px; border-radius: 999px;
           background: var(--accent-blue-bright); border: 2px solid #fff; box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.25); cursor: pointer;
+          transition: transform .2s;
         }
-        .year-dot { background: none; border: none; color: var(--text-tertiary); font-size: 10.5px; padding: 4px 2px; transition: color .2s; }
+        .lhs-range::-webkit-slider-thumb:hover { transform: scale(1.15); }
+        .year-dot { background: none; border: none; color: var(--text-tertiary); font-size: 10.5px; padding: 4px 2px; transition: color .2s, transform .2s; }
+        .year-dot:hover { transform: translateY(-1px); color: var(--text-primary); }
         .year-dot.active { color: var(--accent-blue-bright); font-weight: 600; }
 
         .bar-track { height: 5px; border-radius: 999px; background: rgba(16, 185, 129, 0.1); overflow: hidden; }
-        .bar-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #022c18, #10b981); transition: width .8s ease; }
+        .bar-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #022c18, #10b981); transition: width .8s cubic-bezier(0.16, 1, 0.3, 1); }
 
         .code-block { background: #020b06; border: 1px solid var(--border-glass); border-radius: 12px; overflow: hidden; text-align: left; }
         .code-titlebar { display: flex; align-items: center; gap: 6px; padding: 10px 12px; border-bottom: 1px solid var(--border-glass); background: rgba(16, 185, 129, 0.02); }
@@ -1357,22 +1477,22 @@ function App() {
         .tok-num { color: #7FD1E0; }
         .tok-key { color: var(--accent-blue-bright); }
 
-        .chip { border-radius: 8px; padding: 7px 12px; font-size: 12px; color: var(--text-secondary); transition: all .2s; }
+        .chip { border-radius: 8px; padding: 7px 12px; font-size: 12px; color: var(--text-secondary); transition: all .25s ease; }
         .chip.active { border-color: var(--accent-blue); background: rgba(16,185,129,0.18); color: #fff; box-shadow: 0 0 0 1px rgba(16,185,129,0.4); }
-        .chip:not(.active):hover { border-color: var(--border-glass-hover); color: var(--text-primary); }
+        .chip:not(.active):hover { border-color: var(--border-glass-hover); color: var(--text-primary); transform: translateY(-1px); }
 
         /* pillars */
         .pillar-icon { width: 34px; height: 34px; border-radius: 999px; background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.25); display: flex; align-items: center; justify-content: center; }
 
         /* registration */
         .segmented { display: flex; background: rgba(10, 30, 20, 0.4); border: 1px solid var(--border-glass); border-radius: 12px; padding: 4px; gap: 4px; }
-        .segment { flex: 1; padding: 10px 12px; border-radius: 999px; border: none; background: transparent; color: var(--text-tertiary); font-size: 12.5px; transition: all .2s; }
+        .segment { flex: 1; padding: 10px 12px; border-radius: 999px; border: none; background: transparent; color: var(--text-tertiary); font-size: 12.5px; transition: all .25s ease; }
         .segment.active { background: rgba(16,185,129,0.22); color: #fff; box-shadow: 0 0 0 1px rgba(16,185,129,0.4); }
 
-        .step-dot { width: 24px; height: 24px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; border: 1px solid var(--border-glass); color: var(--text-tertiary); flex-shrink: 0; }
+        .step-dot { width: 24px; height: 24px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; border: 1px solid var(--border-glass); color: var(--text-tertiary); flex-shrink: 0; transition: all .3s ease; }
         .step-dot.active { border-color: var(--accent-blue-bright); color: #fff; background: rgba(16,185,129,0.22); box-shadow: 0 0 0 3px rgba(16,185,129,0.16); }
         .step-dot.done { border-color: var(--green); color: var(--green); background: rgba(34,197,94,0.12); }
-        .step-line { flex: 1; height: 1px; background: var(--border-glass); margin: 0 10px; min-width: 14px; }
+        .step-line { flex: 1; height: 1px; background: var(--border-glass); margin: 0 10px; min-width: 14px; transition: background .3s ease; }
         .step-line.done { background: rgba(34,197,94,0.4); }
 
         .field {
@@ -1383,11 +1503,11 @@ function App() {
         .field:focus { outline: none; border-color: var(--accent-blue-bright); box-shadow: 0 0 0 3px rgba(16,185,129,0.2); }
         .field.error { border-color: var(--red); box-shadow: 0 0 0 3px rgba(229,85,90,0.14); }
 
-        .grade-chip { border: 1px solid var(--border-glass); background: rgba(10, 30, 20, 0.3); border-radius: 999px; padding: 9px 16px; font-size: 13px; color: var(--text-secondary); transition: all .2s; }
+        .grade-chip { border: 1px solid var(--border-glass); background: rgba(10, 30, 20, 0.3); border-radius: 999px; padding: 9px 16px; font-size: 13px; color: var(--text-secondary); transition: all .25s ease; }
         .grade-chip.active { border-color: var(--accent-blue-bright); background: rgba(16,185,129,0.22); color: #fff; box-shadow: 0 0 0 1px rgba(16,185,129,0.4); }
-        .grade-chip:not(.active):hover { border-color: var(--border-glass-hover); color: var(--text-primary); }
+        .grade-chip:not(.active):hover { border-color: var(--border-glass-hover); color: var(--text-primary); transform: translateY(-1px); }
 
-        .dropzone { border: 1.5px dashed var(--border-glass); background: rgba(10, 30, 20, 0.2); border-radius: 12px; transition: all .2s; }
+        .dropzone { border: 1.5px dashed var(--border-glass); background: rgba(10, 30, 20, 0.2); border-radius: 12px; transition: all .25s ease; }
         .dropzone.drag { border-color: var(--accent-blue-bright); background: rgba(16,185,129,0.12); }
         .dropzone.error { border-color: var(--red); }
         .doc-icon { width: 32px; height: 32px; border-radius: 8px; background: rgba(16,185,129,0.12); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
@@ -1400,10 +1520,10 @@ function App() {
         .ticket-check { width: 34px; height: 34px; border-radius: 999px; background: rgba(34,197,94,0.18); color: var(--green); display: flex; align-items: center; justify-content: center; }
 
         /* footer */
-        .footer-link { display: flex; padding: 6px 0; font-size: 13px; transition: color .2s; }
-        .footer-link:hover { color: var(--text-primary); }
-        .social-btn { width: 32px; height: 32px; border-radius: 999px; border: 1px solid var(--border-glass); background: var(--bg-card); display: flex; align-items: center; justify-content: center; color: var(--text-secondary); transition: all .2s; }
-        .social-btn:hover { color: #fff; border-color: var(--border-glass-hover); }
+        .footer-link { display: flex; padding: 6px 0; font-size: 13px; transition: color .2s, transform .2s; }
+        .footer-link:hover { color: var(--text-primary); transform: translateX(2px); }
+        .social-btn { width: 32px; height: 32px; border-radius: 999px; border: 1px solid var(--border-glass); background: var(--bg-card); display: flex; align-items: center; justify-content: center; color: var(--text-secondary); transition: all .25s ease; }
+        .social-btn:hover { color: #fff; border-color: var(--border-glass-hover); transform: translateY(-2px); }
         .footer-bottom { border-top: 1px solid var(--border-glass); }
         .watermark {
           position: absolute; right: 0; bottom: -6px; font-size: 88px; font-weight: 700; letter-spacing: -0.03em;
@@ -1414,6 +1534,7 @@ function App() {
 
         @media (prefers-reduced-motion: reduce) {
           .lhs *, .lhs *::before, .lhs *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+          .reveal-box { opacity: 1 !important; transform: none !important; filter: none !important; }
         }
       `}</style>
 
