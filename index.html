@@ -66,6 +66,8 @@ const {
   Github = () => null,
   Twitter = () => null,
   Linkedin = () => null,
+  CreditCard = () => null,
+  Receipt = () => null,
 } = lucideObj;
 
 /* ------------------------------------------------------------------ */
@@ -706,7 +708,7 @@ function FeaturesGrid() {
 /*  Registration portal                                                */
 /* ------------------------------------------------------------------ */
 
-const STEP_LABELS = ["Student & grade", "Guardian details", "Documents", "Confirmation"];
+const STEP_LABELS = ["Student & grade", "Guardian details", "Documents", "Payment & Fee"];
 
 function ProgressRail({ step }) {
   return (
@@ -752,6 +754,7 @@ function RegistrationPortal() {
   const [errors, setErrors] = useState({});
   const [appId, setAppId] = useState(null);
   const [dragKey, setDragKey] = useState(null);
+  const [isSubmitted, setIsSubmitted] = useState(false);
   const [form, setForm] = useState({
     fullName: "",
     dob: "",
@@ -826,12 +829,23 @@ function RegistrationPortal() {
         if (!files[d.key] || files[d.key].progress < 100) e[d.key] = "Upload this document to continue.";
       });
     }
+    if (n === 4) {
+      if (!files["receipt"] || files["receipt"].progress < 100) {
+        e.receipt = "Please upload the bank deposit or transfer receipt of 5,340 ETB.";
+      }
+    }
     setErrors(e);
     return Object.keys(e).length === 0;
   }
 
   function next() {
-    if (validateStep(step)) setStep((s) => Math.min(s + 1, 4));
+    if (validateStep(step)) {
+      if (step === 4) {
+        setIsSubmitted(true);
+      } else {
+        setStep((s) => Math.min(s + 1, 4));
+      }
+    }
   }
   function back() {
     setErrors({});
@@ -840,6 +854,7 @@ function RegistrationPortal() {
   function restart() {
     setStep(1);
     setAppId(null);
+    setIsSubmitted(false);
     setErrors({});
     setFiles({});
     setForm({
@@ -1062,7 +1077,89 @@ function RegistrationPortal() {
                 </div>
               )}
 
-              {step === 4 && (
+              {step === 4 && !isSubmitted && (
+                <div>
+                  {/* Payment Details Notice */}
+                  <div className="glass" style={{ borderRadius: "12px", padding: "18px", marginBottom: "20px", border: "1px solid var(--border-glass-hover)" }}>
+                    <div className="flex items-center justify-between" style={{ marginBottom: "12px" }}>
+                      <div className="flex items-center" style={{ gap: "10px" }}>
+                        <span className="doc-icon" style={{ background: "rgba(16, 185, 129, 0.2)" }}>
+                          <CreditCard size={18} className="text-accent" />
+                        </span>
+                        <div>
+                          <div className="text-primary" style={{ fontSize: "15px", fontWeight: 600 }}>
+                            Registration Fee Requirement
+                          </div>
+                          <div className="text-tertiary" style={{ fontSize: "12px" }}>
+                            Academic Year 2026/27 Tuition Deposit
+                          </div>
+                        </div>
+                      </div>
+                      <div className="lhs-mono gradient-text" style={{ fontSize: "20px", fontWeight: 700 }}>
+                        5,340 ETB
+                      </div>
+                    </div>
+
+                    <div style={{ fontSize: "13px", lineHeight: 1.6, color: "var(--text-secondary)", borderTop: "1px dashed var(--border-glass)", paddingTop: "12px" }}>
+                      Please deposit or transfer <strong className="text-primary">5,340 Birr</strong> to the school bank account below and upload your transaction receipt:
+                      <div className="grid sm:grid-cols-2 lhs-mono text-xs" style={{ gap: "8px", marginTop: "10px", background: "rgba(2, 6, 4, 0.5)", padding: "10px", borderRadius: "8px" }}>
+                        <div><span className="text-tertiary">Bank:</span> Commercial Bank of Ethiopia</div>
+                        <div><span className="text-tertiary">Account Name:</span> Lemlem High School</div>
+                        <div><span className="text-tertiary">Account No:</span> 1000123456789</div>
+                        <div><span className="text-tertiary">CBE Birr:</span> 0911000000</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Receipt Upload Dropzone */}
+                  <span className="text-secondary" style={{ fontSize: "13px", display: "block", marginBottom: "8px" }}>
+                    Upload Payment Receipt / Deposit Slip
+                  </span>
+                  <div
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      setDragKey("receipt");
+                    }}
+                    onDragLeave={() => setDragKey(null)}
+                    onDrop={(e) => handleDrop(e, "receipt")}
+                    className={`dropzone ${dragKey === "receipt" ? "drag" : ""} ${errors.receipt ? "error" : ""}`}
+                    style={{ padding: "20px" }}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center" style={{ gap: "12px" }}>
+                        <span className="doc-icon">
+                          <Receipt size={18} className="text-accent" />
+                        </span>
+                        <div>
+                          <div className="text-primary" style={{ fontSize: "14px", fontWeight: 500 }}>
+                            Bank Receipt / Transfer Confirmation
+                          </div>
+                          <div className="text-tertiary" style={{ fontSize: "12px" }}>
+                            {files["receipt"] ? files["receipt"].name : "PNG, JPG, or PDF (Receipt showing 5,340 ETB)"}
+                          </div>
+                        </div>
+                      </div>
+                      <label className="btn-glass upload-btn lhs-mono">
+                        <UploadCloud size={13} />
+                        {files["receipt"] && files["receipt"].progress === 100 ? "Replace Receipt" : "Upload Receipt"}
+                        <input type="file" style={{ display: "none" }} onChange={(e) => handleBrowse(e, "receipt")} />
+                      </label>
+                    </div>
+                    {files["receipt"] && (
+                      <div className="upload-track" style={{ marginTop: "14px" }}>
+                        <div className="upload-fill" style={{ width: `${files["receipt"].progress}%` }} />
+                      </div>
+                    )}
+                    {errors.receipt && (
+                      <span className="flex items-center error-text animate-fade-in" style={{ gap: "5px", marginTop: "10px", fontSize: "12px" }}>
+                        <X size={12} /> {errors.receipt}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {step === 4 && isSubmitted && (
                 <div className="ticket animate-scale-up">
                   <div className="flex items-center justify-between" style={{ marginBottom: "18px" }}>
                     <div className="flex items-center" style={{ gap: "10px" }}>
@@ -1071,10 +1168,10 @@ function RegistrationPortal() {
                       </span>
                       <div>
                         <div className="text-primary" style={{ fontSize: "15px", fontWeight: 600 }}>
-                          Application received
+                          Application & Payment Received
                         </div>
                         <div className="text-tertiary" style={{ fontSize: "12px" }}>
-                          Status: pending review
+                          Status: receipt pending verification
                         </div>
                       </div>
                     </div>
@@ -1092,7 +1189,7 @@ function RegistrationPortal() {
                       ["Track", mode === "new" ? "New student" : "Returning student"],
                       ["Guardian", form.guardianName || "—"],
                       ["Phone", form.phone || "—"],
-                      ["Email", form.email || "—"],
+                      ["Registration Fee", "5,340 ETB (Attached)"],
                     ].map(([label, val]) => (
                       <div key={label}>
                         <div className="text-tertiary" style={{ fontSize: "11.5px", marginBottom: "3px" }}>
@@ -1108,14 +1205,14 @@ function RegistrationPortal() {
                   <div className="ticket-divider" />
 
                   <div className="flex items-center text-tertiary" style={{ gap: "8px", fontSize: "12px", paddingTop: "16px" }}>
-                    <Calendar size={13} />A confirmation has been sent — decisions are shared within 3 business days.
+                    <Calendar size={13} />A confirmation has been sent — decisions & receipt validation are shared within 3 business days.
                   </div>
                 </div>
               )}
             </div>
 
             <div className="flex items-center justify-between" style={{ marginTop: "26px" }}>
-              {step > 1 && step < 4 ? (
+              {step > 1 && !isSubmitted ? (
                 <button onClick={back} className="btn-glass flex items-center" style={{ padding: "10px 16px", gap: "6px", fontSize: "13.5px" }}>
                   <ChevronLeft size={15} /> Back
                 </button>
@@ -1123,17 +1220,17 @@ function RegistrationPortal() {
                 <span />
               )}
 
-              {step < 3 && (
+              {step < 4 && (
                 <button onClick={next} className="btn-primary flex items-center" style={{ padding: "10px 18px", gap: "6px", fontSize: "13.5px" }}>
                   Continue <ChevronRight size={15} />
                 </button>
               )}
-              {step === 3 && (
+              {step === 4 && !isSubmitted && (
                 <button onClick={next} className="btn-primary flex items-center" style={{ padding: "10px 18px", gap: "6px", fontSize: "13.5px" }}>
-                  Submit application <ChevronRight size={15} />
+                  Submit application &amp; receipt <ChevronRight size={15} />
                 </button>
               )}
-              {step === 4 && (
+              {isSubmitted && (
                 <button onClick={restart} className="btn-glass flex items-center" style={{ padding: "10px 16px", gap: "6px", fontSize: "13.5px", marginLeft: "auto" }}>
                   Start a new application
                 </button>
