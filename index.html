@@ -1,1344 +1,278 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark scroll-smooth">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Lemlem High School — 30th Anniversary Portal</title>
-
-  <!-- Google Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;650;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-
-  <!-- Lucide Icons CDN -->
-  <script src="https://unpkg.com/lucide@latest"></script>
-
-  <style>
-    :root {
-      --bg-void: #000000;
-      --bg-elevated: #08090A;
-      --bg-card: rgba(255,255,255,0.03);
-      --bg-card-hover: rgba(255,255,255,0.05);
-      --border-glass: rgba(255,255,255,0.08);
-      --border-glass-hover: rgba(255,255,255,0.18);
-      --accent-blue: #5E6AD2;
-      --accent-blue-bright: #8089E8;
-      --accent-indigo: #1B2559;
-      --text-primary: #EEEEEE;
-      --text-secondary: #9095A0;
-      --text-tertiary: #5D6169;
-      --green: #5FE38A;
-      --red: #E5555A;
-      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
-      --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lemlem High School | 30 Years of Excellence</title>
     
-    html { scroll-behavior: smooth; }
-
-    body {
-      background: var(--bg-void);
-      color: var(--text-primary);
-      font-family: var(--font-sans);
-      letter-spacing: -0.011em;
-      position: relative;
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
-
-    h1, h2, h3 { font-family: var(--font-sans); }
-    a { text-decoration: none; color: inherit; }
-    button { font-family: var(--font-sans); cursor: pointer; border: none; background: none; }
-    input { font-family: var(--font-sans); }
-
-    .lhs-mono { font-family: var(--font-mono); }
-    .text-primary { color: var(--text-primary); }
-    .text-secondary { color: var(--text-secondary); }
-    .text-tertiary { color: var(--text-tertiary); }
-    .text-accent { color: var(--accent-blue-bright); }
-    .error-text { color: var(--red); display: flex; align-items: center; gap: 5px; margin-top: 6px; font-size: 12px; }
-
-    /* Layout Helpers */
-    .max-w-7xl { max-width: 1240px; margin: 0 auto; }
-    .flex { display: flex; }
-    .inline-flex { display: inline-flex; }
-    .grid { display: grid; }
-    .items-center { align-items: center; }
-    .items-end { align-items: flex-end; }
-    .justify-between { justify-content: space-between; }
-    .flex-wrap { flex-wrap: wrap; }
-    .relative { position: relative; }
-    .hidden { display: none; }
-
-    @media (min-width: 640px) {
-      .sm\:inline { display: inline; }
-      .sm\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    }
-    @media (min-width: 768px) {
-      .md\:flex { display: flex; }
-      .md\:hidden { display: none; }
-      .md\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .md\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-    }
-    @media (min-width: 1024px) {
-      .lg\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .lg\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-      .lg\:grid-cols-12 { grid-template-columns: repeat(12, minmax(0, 1fr)); }
-    }
-
-    /* Background noise + grid */
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      z-index: 0;
-      pointer-events: none;
-      opacity: 0.05;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-    }
-
-    .grid-bg {
-      background-image:
-        linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
-      background-size: 56px 56px;
-    }
-
-    .ambient-glow {
-      position: absolute;
-      z-index: 0;
-      border-radius: 999px;
-      filter: blur(90px);
-      pointer-events: none;
-    }
-    .ambient-1 {
-      width: 520px; height: 420px; top: -160px; left: 50%; transform: translateX(-70%);
-      background: radial-gradient(circle, rgba(94,106,210,0.30), transparent 70%);
-    }
-    .ambient-2 {
-      width: 460px; height: 380px; top: 40px; right: -140px;
-      background: radial-gradient(circle, rgba(27,37,89,0.55), transparent 70%);
-    }
-
-    section, header, footer { position: relative; z-index: 1; }
-
-    /* Navigation */
-    .nav-shell { position: fixed; top: 0; left: 0; right: 0; z-index: 50; background: transparent; border-bottom: 1px solid transparent; transition: background .3s ease, border-color .3s ease; }
-    .nav-scrolled { background: rgba(0,0,0,0.72); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid var(--border-glass); }
-    .logo-mark {
-      width: 30px; height: 30px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center;
-      background: linear-gradient(155deg, var(--accent-blue-bright), var(--accent-indigo));
-      color: #fff; font-size: 11.5px; font-weight: 600; box-shadow: 0 1px 0 rgba(255,255,255,0.25) inset;
-    }
-    .pill-mini {
-      font-size: 10px; padding: 3px 7px; border-radius: 999px; border: 1px solid var(--border-glass);
-      color: var(--text-tertiary); letter-spacing: 0.04em;
-    }
-    .nav-link { font-size: 13.5px; padding: 8px 12px; border-radius: 8px; transition: color .2s, background .2s; }
-    .nav-link:hover { color: var(--text-primary); background: rgba(255,255,255,0.04); }
-    .mobile-link { display: block; padding: 12px 10px; font-size: 14px; border-radius: 10px; }
-    .mobile-link:hover { background: rgba(255,255,255,0.04); color: var(--text-primary); }
-
-    /* Buttons & Badges */
-    .btn-primary {
-      display: inline-flex; align-items: center; justify-content: center; border-radius: 10px;
-      background: linear-gradient(180deg, #6E79E0, var(--accent-blue));
-      color: #fff; font-weight: 500; border: 1px solid rgba(255,255,255,0.08);
-      box-shadow: 0 1px 0 rgba(255,255,255,0.25) inset, 0 10px 30px -10px rgba(94,106,210,0.65);
-      position: relative; overflow: hidden; transition: transform .2s ease, box-shadow .2s ease;
-    }
-    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 1px 0 rgba(255,255,255,0.3) inset, 0 14px 34px -8px rgba(94,106,210,0.8); }
-    .btn-primary::after {
-      content: ''; position: absolute; top: 0; left: -60%; width: 40%; height: 100%;
-      background: linear-gradient(115deg, transparent, rgba(255,255,255,0.35), transparent);
-      transform: skewX(-20deg); transition: left .6s ease;
-    }
-    .btn-primary:hover::after { left: 130%; }
-
-    .btn-glass {
-      display: inline-flex; align-items: center; justify-content: center; border-radius: 10px;
-      background: var(--bg-card); border: 1px solid var(--border-glass); color: var(--text-primary);
-      font-weight: 500; transition: background .2s, border-color .2s, transform .2s;
-    }
-    .btn-glass:hover { background: var(--bg-card-hover); border-color: var(--border-glass-hover); transform: translateY(-1px); }
-
-    .pill { border-radius: 999px; border: 1px solid var(--border-glass); background: var(--bg-card); transition: border-color .25s, background .25s, transform .25s; }
-    .pill:hover { border-color: rgba(94,106,210,0.55); background: rgba(94,106,210,0.10); transform: translateY(-1px); }
-    .pill-icon { color: var(--accent-blue-bright); display: inline-flex; }
-
-    .kbd {
-      font-family: var(--font-mono); font-size: 11px; background: rgba(255,255,255,0.07);
-      border: 1px solid var(--border-glass); border-bottom-width: 2px; border-radius: 6px;
-      padding: 2px 7px; color: var(--text-secondary);
-    }
-
-    /* Glass Surfaces & Spotlight */
-    .glass { background: var(--bg-card); border: 1px solid var(--border-glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
-    .spot-card { position: relative; overflow: hidden; border-radius: 18px; transition: border-color .3s ease, transform .3s ease; }
-    .spot-card:hover { border-color: var(--border-glass-hover); transform: translateY(-2px); }
-    .spot-card::before {
-      content: ''; position: absolute; inset: 0; opacity: 0; transition: opacity .35s ease; pointer-events: none;
-      background: radial-gradient(360px circle at var(--mx,50%) var(--my,50%), rgba(94,106,210,0.16), transparent 45%);
-    }
-    .spot-card:hover::before { opacity: 1; }
-
-    .gradient-text {
-      background: linear-gradient(180deg, #FFFFFF 0%, #B7BCE8 100%);
-      -webkit-background-clip: text; background-clip: text; color: transparent;
-    }
-
-    .dot-live {
-      width: 6px; height: 6px; border-radius: 999px; background: var(--green); display: inline-block;
-      box-shadow: 0 0 0 0 rgba(95,227,138,0.6); animation: pulse-ring 2.2s infinite;
-    }
-    @keyframes pulse-ring {
-      0% { box-shadow: 0 0 0 0 rgba(95,227,138,0.5); }
-      70% { box-shadow: 0 0 0 7px rgba(95,227,138,0); }
-      100% { box-shadow: 0 0 0 0 rgba(95,227,138,0); }
-    }
-
-    /* Dashboard Widgets */
-    .dashboard-card { box-shadow: 0 30px 80px -30px rgba(0,0,0,0.8); }
-    .dash-tile { background: rgba(255,255,255,0.025); border: 1px solid var(--border-glass); border-radius: 12px; padding: 12px; }
-    .bar { flex: 1; min-width: 4px; border-radius: 3px 3px 0 0; background: linear-gradient(180deg, var(--accent-blue-bright), rgba(94,106,210,0.25));
-      animation: bar-rise .7s ease backwards; }
-    @keyframes bar-rise { from { transform: scaleY(0); transform-origin: bottom; } to { transform: scaleY(1); } }
-
-    .eyebrow { color: var(--accent-blue-bright); font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; font-size: 12px; }
-
-    /* Bento Cards */
-    .bento-card { min-height: 220px; }
-    .tile-label { font-size: 11.5px; letter-spacing: 0.05em; text-transform: uppercase; }
-    .lhs-range { -webkit-appearance: none; width: 100%; height: 4px; border-radius: 999px; background: var(--border-glass); outline: none; }
-    .lhs-range::-webkit-slider-thumb {
-      -webkit-appearance: none; width: 15px; height: 15px; border-radius: 999px;
-      background: var(--accent-blue-bright); border: 2px solid #fff; box-shadow: 0 0 0 4px rgba(94,106,210,0.25); cursor: pointer;
-    }
-    .year-dot { background: none; border: none; color: var(--text-tertiary); font-size: 10.5px; padding: 4px 2px; transition: color .2s; }
-    .year-dot.active { color: var(--accent-blue-bright); font-weight: 600; }
-
-    .bar-track { height: 5px; border-radius: 999px; background: rgba(255,255,255,0.06); overflow: hidden; }
-    .bar-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--accent-indigo), var(--accent-blue-bright)); transition: width .8s ease; }
-
-    .code-block { background: #050609; border: 1px solid var(--border-glass); border-radius: 12px; overflow: hidden; }
-    .code-titlebar { display: flex; align-items: center; gap: 6px; padding: 10px 12px; border-bottom: 1px solid var(--border-glass); background: rgba(255,255,255,0.02); }
-    .code-dot { width: 8px; height: 8px; border-radius: 999px; display: inline-block; }
-    .code-pre { padding: 16px; font-size: 12.5px; line-height: 1.7; color: var(--text-secondary); white-space: pre-wrap; margin: 0; }
-    .tok-str { color: #E8B34C; }
-    .tok-num { color: #7FD1E0; }
-    .tok-key { color: var(--accent-blue-bright); }
-
-    .chip { border: 1px solid var(--border-glass); background: rgba(255,255,255,0.02); border-radius: 8px; padding: 7px 12px; font-size: 12px; color: var(--text-secondary); transition: all .2s; }
-    .chip.active { border-color: var(--accent-blue); background: rgba(94,106,210,0.14); color: #fff; box-shadow: 0 0 0 1px rgba(94,106,210,0.4); }
-    .chip:not(.active):hover { border-color: var(--border-glass-hover); color: var(--text-primary); }
-
-    .pillar-icon { width: 34px; height: 34px; border-radius: 9px; background: rgba(94,106,210,0.12); border: 1px solid rgba(94,106,210,0.25); display: flex; align-items: center; justify-content: center; }
-
-    /* Portal & Form Inputs */
-    .segmented { display: flex; background: rgba(255,255,255,0.03); border: 1px solid var(--border-glass); border-radius: 12px; padding: 4px; gap: 4px; }
-    .segment { flex: 1; padding: 10px 12px; border-radius: 999px; border: none; background: transparent; color: var(--text-tertiary); font-size: 12.5px; transition: all .2s; }
-    .segment.active { background: rgba(94,106,210,0.16); color: #fff; box-shadow: 0 0 0 1px rgba(94,106,210,0.4); }
-
-    .step-dot { width: 24px; height: 24px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; border: 1px solid var(--border-glass); color: var(--text-tertiary); flex-shrink: 0; }
-    .step-dot.active { border-color: var(--accent-blue); color: #fff; background: rgba(94,106,210,0.18); box-shadow: 0 0 0 3px rgba(94,106,210,0.16); }
-    .step-dot.done { border-color: var(--green); color: var(--green); background: rgba(95,227,138,0.08); }
-    .step-line { flex: 1; height: 1px; background: var(--border-glass); margin: 0 10px; min-width: 14px; }
-    .step-line.done { background: rgba(95,227,138,0.4); }
-
-    .field-wrap { display: block; margin-bottom: 16px; }
-    .field {
-      width: 100%; background: rgba(255,255,255,0.02); border: 1px solid var(--border-glass); border-radius: 10px;
-      padding: 11px 13px; color: var(--text-primary); font-size: 13.5px; transition: border-color .2s, box-shadow .2s;
-    }
-    .field::placeholder { color: var(--text-tertiary); }
-    .field:focus { outline: none; border-color: var(--accent-blue); box-shadow: 0 0 0 3px rgba(94,106,210,0.2); }
-    .field.error { border-color: var(--red); box-shadow: 0 0 0 3px rgba(229,85,90,0.14); }
-
-    .grade-chip { border: 1px solid var(--border-glass); background: rgba(255,255,255,0.02); border-radius: 9px; padding: 9px 16px; font-size: 13px; color: var(--text-secondary); transition: all .2s; }
-    .grade-chip.active { border-color: var(--accent-blue); background: rgba(94,106,210,0.16); color: #fff; box-shadow: 0 0 0 1px rgba(94,106,210,0.4); }
-    .grade-chip:not(.active):hover { border-color: var(--border-glass-hover); color: var(--text-primary); }
-
-    .dropzone { border: 1.5px dashed var(--border-glass); background: rgba(255,255,255,0.015); border-radius: 12px; transition: all .2s; }
-    .dropzone.drag { border-color: var(--accent-blue); background: rgba(94,106,210,0.07); }
-    .dropzone.error { border-color: var(--red); }
-    .doc-icon { width: 32px; height: 32px; border-radius: 8px; background: rgba(94,106,210,0.12); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-    .upload-btn { font-size: 11.5px; padding: 7px 11px; gap: 6px; cursor: pointer; }
-    .upload-track { height: 4px; border-radius: 999px; background: rgba(255,255,255,0.06); overflow: hidden; }
-    .upload-fill { height: 100%; background: linear-gradient(90deg, var(--accent-indigo), var(--accent-blue-bright)); transition: width .2s linear; }
-
-    .ticket { background: linear-gradient(180deg, rgba(94,106,210,0.08), rgba(255,255,255,0.015)); border: 1px solid var(--border-glass); border-radius: 14px; padding: 22px; }
-    .ticket-divider { border-top: 1px dashed var(--border-glass); }
-    .ticket-check { width: 34px; height: 34px; border-radius: 999px; background: rgba(95,227,138,0.14); color: var(--green); display: flex; align-items: center; justify-content: center; }
-
-    /* Footer */
-    .footer-link { display: flex; padding: 6px 0; font-size: 13px; transition: color .2s; }
-    .footer-link:hover { color: var(--text-primary); }
-    .social-btn { width: 32px; height: 32px; border-radius: 9px; border: 1px solid var(--border-glass); background: var(--bg-card); display: flex; align-items: center; justify-content: center; color: var(--text-secondary); transition: all .2s; }
-    .social-btn:hover { color: #fff; border-color: var(--border-glass-hover); }
-    .footer-bottom { border-top: 1px solid var(--border-glass); }
-    .watermark {
-      position: absolute; right: 0; bottom: -6px; font-size: 88px; font-weight: 700; letter-spacing: -0.03em;
-      color: transparent; -webkit-text-stroke: 1px rgba(255,255,255,0.06); pointer-events: none; user-select: none;
-      display: none;
-    }
-    @media (min-width: 1024px) { .watermark { display: block; } }
-
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
-    }
-  </style>
-</head>
-<body>
-
-  <!-- Header Navigation -->
-  <header id="main-header" class="nav-shell">
-    <div class="max-w-7xl flex items-center justify-between" style="height: 64px; padding: 0 20px;">
-      <a href="#top" class="flex items-center" style="gap: 10px;">
-        <span class="logo-mark lhs-mono">LH</span>
-        <span class="text-primary" style="font-weight: 600; font-size: 14.5px; letter-spacing: -0.01em;">Lemlem High School</span>
-        <span class="pill-mini lhs-mono hidden md:inline-flex">30&nbsp;YRS</span>
-      </a>
-
-      <nav class="hidden md:flex items-center" style="gap: 4px;">
-        <a href="#about" class="nav-link text-secondary">About</a>
-        <a href="#academics" class="nav-link text-secondary">Academics</a>
-        <a href="#admissions" class="nav-link text-secondary">Admissions</a>
-        <a href="#footer" class="nav-link text-secondary">Contact</a>
-      </nav>
-
-      <div class="hidden md:flex items-center" style="gap: 10px;">
-        <a href="#admissions" class="btn-glass text-sm" style="padding: 8px 14px; font-size: 14px;">Portal status</a>
-        <a href="#admissions" class="btn-primary text-sm" style="padding: 8px 16px; font-size: 14px;">Apply for 2026/27</a>
-      </div>
-
-      <button id="menu-toggle" class="md:hidden btn-glass" style="padding: 8px;" aria-label="Toggle menu">
-        <i data-lucide="menu" id="menu-icon" style="width: 18px; height: 18px;"></i>
-      </button>
-    </div>
-
-    <div id="mobile-menu" class="hidden md:hidden glass" style="margin: 0 12px 12px; border-radius: 16px; padding: 10px;">
-      <a href="#about" class="mobile-link text-secondary">About</a>
-      <a href="#academics" class="mobile-link text-secondary">Academics</a>
-      <a href="#admissions" class="mobile-link text-secondary">Admissions</a>
-      <a href="#footer" class="mobile-link text-secondary">Contact</a>
-      <a href="#admissions" class="btn-primary text-sm" style="display: block; text-align: center; margin-top: 8px; padding: 10px; font-size: 14px;">Apply for 2026/27</a>
-    </div>
-  </header>
-
-  <main>
-    <!-- Hero Section -->
-    <section id="top" style="padding-top: 148px; padding-bottom: 96px;">
-      <div class="ambient-glow ambient-1"></div>
-      <div class="ambient-glow ambient-2"></div>
-      <div class="max-w-7xl relative" style="padding: 0 20px;">
-        <div class="grid lg:grid-cols-2 items-center" style="gap: 48px;">
-          <div>
-            <a href="#about" class="pill inline-flex items-center" style="padding: 6px 14px 6px 8px; gap: 8px; margin-bottom: 28px;">
-              <span class="pill-icon"><i data-lucide="sparkles" style="width: 12px; height: 12px;"></i></span>
-              <span class="text-secondary" style="font-size: 12.5px;">30 Years of Excellence (1996–2026) · 2026/27 Portal Open</span>
-            </a>
-
-            <h1 class="gradient-text" style="font-size: clamp(2.5rem, 6vw, 4.25rem); font-weight: 650; line-height: 1.04; letter-spacing: -0.03em;">
-              Built for the future<br />of education.
-            </h1>
-
-            <p class="text-secondary" style="font-size: 17px; line-height: 1.6; margin-top: 22px; max-width: 480px;">
-              For thirty years, Lemlem High School has paired rigorous academics with modern tools — from Addis Ababa to a global alumni network of 5,200+ graduates. This is where that legacy meets a campus portal built like real software.
-            </p>
-
-            <div class="flex flex-wrap items-center" style="gap: 12px; margin-top: 32px;">
-              <a href="#admissions" class="btn-primary flex items-center" style="padding: 12px 20px; gap: 8px; font-size: 14.5px;">
-                Apply for 2026/27 <i data-lucide="arrow-right" style="width: 16px; height: 16px;"></i>
-              </a>
-              <a href="#about" class="btn-glass flex items-center" style="padding: 12px 18px; gap: 10px; font-size: 14.5px;">
-                Explore 30th Anniversary Legacy <span class="kbd">⌘L</span>
-              </a>
-            </div>
-
-            <div class="flex items-center flex-wrap" style="gap: 22px; margin-top: 40px;">
-              <div class="flex items-center text-tertiary" style="gap: 7px; font-size: 12.5px;">
-                <i data-lucide="check" class="text-accent" style="width: 13px; height: 13px;"></i> EGSECE-aligned curriculum
-              </div>
-              <div class="flex items-center text-tertiary" style="gap: 7px; font-size: 12.5px;">
-                <i data-lucide="check" class="text-accent" style="width: 13px; height: 13px;"></i> Grades 9–12
-              </div>
-              <div class="flex items-center text-tertiary" style="gap: 7px; font-size: 12.5px;">
-                <i data-lucide="check" class="text-accent" style="width: 13px; height: 13px;"></i> Addis Ababa, Ethiopia
-              </div>
-            </div>
-          </div>
-
-          <!-- Hero Dashboard Widget -->
-          <div class="relative">
-            <div class="glass dashboard-card" style="border-radius: 20px; padding: 20px;">
-              <div class="flex items-center justify-between" style="margin-bottom: 18px;">
-                <div class="flex items-center" style="gap: 8px;">
-                  <span class="dot-live"></span>
-                  <span class="lhs-mono text-secondary" style="font-size: 12px;">campus.status — live</span>
-                </div>
-                <span class="lhs-mono text-tertiary" style="font-size: 12px;">2026/27</span>
-              </div>
-
-              <div class="grid sm:grid-cols-2" style="gap: 10px; margin-bottom: 16px;">
-                <div class="dash-tile">
-                  <div class="flex items-center justify-between" style="margin-bottom: 10px;">
-                    <i data-lucide="graduation-cap" class="text-accent" style="width: 15px; height: 15px;"></i>
-                    <i data-lucide="arrow-up-right" class="text-tertiary" style="width: 13px; height: 13px;"></i>
-                  </div>
-                  <div class="lhs-mono gradient-text stat-count" data-target="100" data-suffix="%" style="font-size: 22px; font-weight: 600;">0%</div>
-                  <div class="text-tertiary" style="font-size: 11.5px; margin-top: 2px;">University acceptance</div>
-                </div>
-
-                <div class="dash-tile">
-                  <div class="flex items-center justify-between" style="margin-bottom: 10px;">
-                    <i data-lucide="users" class="text-accent" style="width: 15px; height: 15px;"></i>
-                    <i data-lucide="arrow-up-right" class="text-tertiary" style="width: 13px; height: 13px;"></i>
-                  </div>
-                  <div class="lhs-mono gradient-text stat-count" data-target="5200" data-suffix="+" style="font-size: 22px; font-weight: 600;">0+</div>
-                  <div class="text-tertiary" style="font-size: 11.5px; margin-top: 2px;">Alumni worldwide</div>
-                </div>
-
-                <div class="dash-tile">
-                  <div class="flex items-center justify-between" style="margin-bottom: 10px;">
-                    <i data-lucide="cpu" class="text-accent" style="width: 15px; height: 15px;"></i>
-                    <i data-lucide="arrow-up-right" class="text-tertiary" style="width: 13px; height: 13px;"></i>
-                  </div>
-                  <div class="lhs-mono gradient-text stat-count" data-target="12" data-suffix="" style="font-size: 22px; font-weight: 600;">0</div>
-                  <div class="text-tertiary" style="font-size: 11.5px; margin-top: 2px;">Active STEM programs</div>
-                </div>
-
-                <div class="dash-tile">
-                  <div class="flex items-center justify-between" style="margin-bottom: 10px;">
-                    <i data-lucide="globe" class="text-accent" style="width: 15px; height: 15px;"></i>
-                    <i data-lucide="arrow-up-right" class="text-tertiary" style="width: 13px; height: 13px;"></i>
-                  </div>
-                  <div class="lhs-mono gradient-text stat-count" data-target="40" data-suffix="+" style="font-size: 22px; font-weight: 600;">0+</div>
-                  <div class="text-tertiary" style="font-size: 11.5px; margin-top: 2px;">Countries represented</div>
-                </div>
-              </div>
-
-              <div class="dash-tile" style="padding: 14px 14px 10px;">
-                <div class="flex items-center justify-between" style="margin-bottom: 10px;">
-                  <span class="text-secondary" style="font-size: 11.5px;">Applications received — last 12 weeks</span>
-                  <span class="lhs-mono text-accent" style="font-size: 11.5px;">+142%</span>
-                </div>
-                <div class="flex items-end" style="gap: 5px; height: 56px;">
-                  <div class="bar" style="height: 38%; animation-delay: 0ms;"></div>
-                  <div class="bar" style="height: 52%; animation-delay: 45ms;"></div>
-                  <div class="bar" style="height: 44%; animation-delay: 90ms;"></div>
-                  <div class="bar" style="height: 61%; animation-delay: 135ms;"></div>
-                  <div class="bar" style="height: 58%; animation-delay: 180ms;"></div>
-                  <div class="bar" style="height: 73%; animation-delay: 225ms;"></div>
-                  <div class="bar" style="height: 69%; animation-delay: 270ms;"></div>
-                  <div class="bar" style="height: 81%; animation-delay: 315ms;"></div>
-                  <div class="bar" style="height: 76%; animation-delay: 360ms;"></div>
-                  <div class="bar" style="height: 92%; animation-delay: 405ms;"></div>
-                  <div class="bar" style="height: 88%; animation-delay: 450ms;"></div>
-                  <div class="bar" style="height: 97%; animation-delay: 495ms;"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Bento Showcase -->
-    <section id="about" style="padding: 80px 20px;">
-      <div class="max-w-7xl">
-        <div class="eyebrow lhs-mono">1996 — 2026</div>
-        <h2 class="text-primary" style="font-size: clamp(1.9rem, 3.4vw, 2.6rem); font-weight: 600; letter-spacing: -0.02em; margin-top: 10px;">
-          Three decades. One mission.
-        </h2>
-        <p class="text-secondary" style="font-size: 15.5px; margin-top: 10px; max-width: 560px;">
-          Every milestone below is tracked in both the Gregorian and Ethiopian calendars — the same way the school year runs.
-        </p>
-
-        <div class="grid lg:grid-cols-12" style="gap: 16px; margin-top: 36px;">
-          <!-- Timeline Card -->
-          <div class="spot-card glass bento-card" style="grid-column: span 7; padding: 26px;">
-            <div class="flex items-center justify-between" style="margin-bottom: 18px;">
-              <span class="tile-label text-tertiary">Interactive timeline</span>
-              <span id="tl-date" class="lhs-mono text-tertiary" style="font-size: 11.5px;">G.C. 2026 · E.C. 2019</span>
-            </div>
-
-            <h3 id="tl-title" class="text-primary" style="font-size: 22px; font-weight: 600; letter-spacing: -0.01em;">30th anniversary</h3>
-            <p id="tl-body" class="text-secondary" style="font-size: 14.5px; line-height: 1.6; margin-top: 8px; min-height: 44px;">
-              5,200+ alumni across 40+ countries. The digital campus portal you're using now goes live.
-            </p>
-
-            <input type="range" id="timeline-slider" min="0" max="5" step="1" value="5" class="lhs-range" style="margin-top: 18px;" aria-label="Scrub through 30 years of history">
-            <div id="timeline-dots" class="flex justify-between" style="margin-top: 8px;"></div>
-          </div>
-
-          <!-- Alumni Network Card -->
-          <div class="spot-card glass bento-card" style="grid-column: span 5; padding: 26px;">
-            <div class="flex items-center justify-between" style="margin-bottom: 16px;">
-              <span class="tile-label text-tertiary">Alumni network</span>
-              <span class="flex items-center" style="gap: 6px;">
-                <span class="dot-live"></span>
-                <span class="lhs-mono text-tertiary" style="font-size: 11px;">live</span>
-              </span>
-            </div>
-
-            <div id="alumni-ticker" class="lhs-mono gradient-text" style="font-size: 34px; font-weight: 650; letter-spacing: -0.02em;">5,214</div>
-            <div class="text-tertiary" style="font-size: 12.5px; margin-top: 2px; margin-bottom: 18px;">graduates tracked across 40+ countries</div>
-
-            <div>
-              <div style="margin-bottom: 10px;">
-                <div class="flex justify-between" style="font-size: 12px; margin-bottom: 4px;">
-                  <span class="text-secondary">Ethiopia</span>
-                  <span class="text-tertiary lhs-mono">100%</span>
-                </div>
-                <div class="bar-track"><div class="bar-fill" style="width: 100%;"></div></div>
-              </div>
-
-              <div style="margin-bottom: 10px;">
-                <div class="flex justify-between" style="font-size: 12px; margin-bottom: 4px;">
-                  <span class="text-secondary">United States</span>
-                  <span class="text-tertiary lhs-mono">68%</span>
-                </div>
-                <div class="bar-track"><div class="bar-fill" style="width: 68%;"></div></div>
-              </div>
-
-              <div style="margin-bottom: 10px;">
-                <div class="flex justify-between" style="font-size: 12px; margin-bottom: 4px;">
-                  <span class="text-secondary">Germany</span>
-                  <span class="text-tertiary lhs-mono">41%</span>
-                </div>
-                <div class="bar-track"><div class="bar-fill" style="width: 41%;"></div></div>
-              </div>
-
-              <div style="margin-bottom: 10px;">
-                <div class="flex justify-between" style="font-size: 12px; margin-bottom: 4px;">
-                  <span class="text-secondary">United Arab Emirates</span>
-                  <span class="text-tertiary lhs-mono">33%</span>
-                </div>
-                <div class="bar-track"><div class="bar-fill" style="width: 33%;"></div></div>
-              </div>
-
-              <div style="margin-bottom: 10px;">
-                <div class="flex justify-between" style="font-size: 12px; margin-bottom: 4px;">
-                  <span class="text-secondary">Canada</span>
-                  <span class="text-tertiary lhs-mono">27%</span>
-                </div>
-                <div class="bar-track"><div class="bar-fill" style="width: 27%;"></div></div>
-              </div>
-            </div>
-          </div>
-
-          <!-- STEM Card -->
-          <div class="spot-card glass bento-card" style="grid-column: span 12; padding: 26px;">
-            <div class="grid md:grid-cols-2" style="gap: 24px;">
-              <div>
-                <span class="tile-label text-tertiary">STEM &amp; innovation hub</span>
-                <h3 class="text-primary" style="font-size: 20px; font-weight: 600; margin-top: 10px; letter-spacing: -0.01em;">Four labs. One building.</h3>
-                <p class="text-secondary" style="font-size: 14px; line-height: 1.6; margin-top: 8px; max-width: 380px;">
-                  Since 2014, every Grade 11–12 student joins a hands-on studio — pick one below to see this term's roster.
-                </p>
-                <div id="stem-chips" class="flex flex-wrap" style="gap: 8px; margin-top: 18px;"></div>
-              </div>
-
-              <div class="code-block lhs-mono">
-                <div class="code-titlebar">
-                  <span class="code-dot" style="background: #E5555A;"></span>
-                  <span class="code-dot" style="background: #E8B34C;"></span>
-                  <span class="code-dot" style="background: #5FE38A;"></span>
-                  <span class="text-tertiary" style="font-size: 11px; margin-left: 8px;">innovation_hub.json</span>
-                </div>
-                <pre class="code-pre" id="stem-json"></pre>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Registration Portal -->
-    <section id="admissions" style="padding: 80px 20px;">
-      <div class="max-w-7xl">
-        <div class="grid lg:grid-cols-12" style="gap: 40px;">
-          <div style="grid-column: span 4;">
-            <div class="eyebrow lhs-mono">2026/27 admissions</div>
-            <h2 class="text-primary" style="font-size: clamp(1.9rem, 3.2vw, 2.4rem); font-weight: 600; letter-spacing: -0.02em; margin-top: 10px;">
-              Registration, built like software.
-            </h2>
-            <p class="text-secondary" style="font-size: 14.5px; line-height: 1.65; margin-top: 12px; max-width: 360px;">
-              Four short steps, autosaved as you go. New applicants and returning students follow the same clean flow.
-            </p>
-            <div style="margin-top: 24px;">
-              <div class="flex items-center text-tertiary" style="gap: 8px; font-size: 13px; margin-bottom: 10px;">
-                <i data-lucide="shield-check" class="text-accent" style="width: 14px; height: 14px;"></i> Reviewed within 3 business days
-              </div>
-              <div class="flex items-center text-tertiary" style="gap: 8px; font-size: 13px; margin-bottom: 10px;">
-                <i data-lucide="shield-check" class="text-accent" style="width: 14px; height: 14px;"></i> SMS + email confirmation
-              </div>
-              <div class="flex items-center text-tertiary" style="gap: 8px; font-size: 13px; margin-bottom: 10px;">
-                <i data-lucide="shield-check" class="text-accent" style="width: 14px; height: 14px;"></i> No paper forms required
-              </div>
-            </div>
-          </div>
-
-          <div class="glass" style="grid-column: span 8; border-radius: 20px; padding: 28px;">
-            <div class="segmented">
-              <button id="mode-new" class="segment lhs-mono active">New student application</button>
-              <button id="mode-returning" class="segment lhs-mono">Returning student re-registration</button>
-            </div>
-
-            <div style="margin-top: 26px;">
-              <div id="progress-rail" class="flex items-center" style="margin-bottom: 30px;"></div>
-            </div>
-
-            <!-- Integrated Form submit -->
-            <form id="portal-form" action="https://formsubmit.co/asfawlemlemschool@gmail.com" method="POST" enctype="multipart/form-data">
-              <!-- FormSubmit Options -->
-              <input type="hidden" name="_captcha" value="false">
-              <input type="hidden" name="_template" value="table">
-              <input type="hidden" name="Selected Grade" id="hidden-grade" value="">
-              <input type="hidden" name="Application Track" id="hidden-track" value="New Student">
-
-              <!-- Form Steps Container -->
-              <div id="form-steps">
-                <!-- Step 1 -->
-                <div id="step-1" class="form-step">
-                  <div class="field-wrap">
-                    <label class="text-secondary" style="font-size: 13px; display: block; margin-bottom: 7px;">Student full name</label>
-                    <input type="text" name="Student Full Name" id="inp-fullName" class="field" placeholder="e.g. Selamawit Bekele">
-                    <div id="err-fullName" class="error-text hidden"><i data-lucide="x" style="width: 12px; height: 12px;"></i> <span></span></div>
-                  </div>
-
-                  <div class="grid sm:grid-cols-2" style="gap: 0 16px;">
-                    <div class="field-wrap">
-                      <label class="text-secondary" style="font-size: 13px; display: block; margin-bottom: 7px;">Date of birth</label>
-                      <input type="date" name="Date of Birth" id="inp-dob" class="field">
-                      <div id="err-dob" class="error-text hidden"><i data-lucide="x" style="width: 12px; height: 12px;"></i> <span></span></div>
-                    </div>
-                    <div class="field-wrap">
-                      <label id="lbl-prev-or-id" class="text-secondary" style="font-size: 13px; display: block; margin-bottom: 7px;">Previous school</label>
-                      <input type="text" name="Previous School or Student ID" id="inp-prevOrId" class="field" placeholder="e.g. Bole Elementary School">
-                      <div id="err-prevOrId" class="error-text hidden"><i data-lucide="x" style="width: 12px; height: 12px;"></i> <span></span></div>
-                    </div>
-                  </div>
-
-                  <span class="text-secondary" style="font-size: 13px; display: block; margin-bottom: 10px;">Grade for 2026/27</span>
-                  <div id="grade-chips" class="flex flex-wrap" style="gap: 8px;">
-                    <button type="button" class="grade-chip lhs-mono" data-grade="9">Grade 9</button>
-                    <button type="button" class="grade-chip lhs-mono" data-grade="10">Grade 10</button>
-                    <button type="button" class="grade-chip lhs-mono" data-grade="11">Grade 11</button>
-                    <button type="button" class="grade-chip lhs-mono" data-grade="12">Grade 12</button>
-                  </div>
-                  <div id="err-grade" class="error-text hidden"><i data-lucide="x" style="width: 12px; height: 12px;"></i> <span></span></div>
-                </div>
-
-                <!-- Step 2 -->
-                <div id="step-2" class="form-step hidden">
-                  <div class="grid sm:grid-cols-2" style="gap: 0 16px;">
-                    <div class="field-wrap">
-                      <label class="text-secondary" style="font-size: 13px; display: block; margin-bottom: 7px;">Guardian full name</label>
-                      <input type="text" name="Guardian Full Name" id="inp-guardianName" class="field" placeholder="e.g. Almaz Tesfaye">
-                      <div id="err-guardianName" class="error-text hidden"><i data-lucide="x" style="width: 12px; height: 12px;"></i> <span></span></div>
-                    </div>
-                    <div class="field-wrap">
-                      <label class="text-secondary" style="font-size: 13px; display: block; margin-bottom: 7px;">Relationship to student</label>
-                      <input type="text" name="Relationship to Student" id="inp-relationship" class="field" placeholder="e.g. Mother, Father, Guardian">
-                      <div id="err-relationship" class="error-text hidden"><i data-lucide="x" style="width: 12px; height: 12px;"></i> <span></span></div>
-                    </div>
-                  </div>
-                  <div class="grid sm:grid-cols-2" style="gap: 0 16px;">
-                    <div class="field-wrap">
-                      <label class="text-secondary" style="font-size: 13px; display: block; margin-bottom: 7px;">Phone number</label>
-                      <input type="text" name="Phone Number" id="inp-phone" class="field lhs-mono" placeholder="+251 9XX XXX XXX">
-                      <div id="err-phone" class="error-text hidden"><i data-lucide="x" style="width: 12px; height: 12px;"></i> <span></span></div>
-                    </div>
-                    <div class="field-wrap">
-                      <label class="text-secondary" style="font-size: 13px; display: block; margin-bottom: 7px;">Email address</label>
-                      <input type="email" name="Email Address" id="inp-email" class="field" placeholder="name@example.com">
-                      <div id="err-email" class="error-text hidden"><i data-lucide="x" style="width: 12px; height: 12px;"></i> <span></span></div>
-                    </div>
-                  </div>
-                  <div class="field-wrap">
-                    <label class="text-secondary" style="font-size: 13px; display: block; margin-bottom: 7px;">Home address</label>
-                    <input type="text" name="Home Address" id="inp-address" class="field" placeholder="Sub-city, woreda, house number">
-                    <div id="err-address" class="error-text hidden"><i data-lucide="x" style="width: 12px; height: 12px;"></i> <span></span></div>
-                  </div>
-                </div>
-
-                <!-- Step 3 -->
-                <div id="step-3" class="form-step hidden">
-                  <div id="docs-list"></div>
-                  <p class="text-tertiary" style="font-size: 12px; margin-top: 4px;">
-                    Drag a file onto any box, or use Browse. Accepted: PDF, JPG, PNG — up to 10MB.
-                  </p>
-                </div>
-
-                <!-- Step 4 -->
-                <div id="step-4" class="form-step hidden">
-                  <div class="ticket">
-                    <div class="flex items-center justify-between" style="margin-bottom: 18px;">
-                      <div class="flex items-center" style="gap: 10px;">
-                        <span class="ticket-check"><i data-lucide="check-circle-2" style="width: 18px; height: 18px;"></i></span>
-                        <div>
-                          <div class="text-primary" style="font-size: 15px; font-weight: 600;">Application received</div>
-                          <div class="text-tertiary" style="font-size: 12px;">Status: pending review</div>
-                        </div>
-                      </div>
-                      <span id="ticket-appid" class="lhs-mono text-accent" style="font-size: 13px;"></span>
-                    </div>
-
-                    <div class="ticket-divider"></div>
-
-                    <div class="grid sm:grid-cols-2" style="gap: 14px 24px; padding: 18px 0;">
-                      <div>
-                        <div class="text-tertiary" style="font-size: 11.5px; margin-bottom: 3px;">Applicant</div>
-                        <div id="tk-name" class="text-primary" style="font-size: 13.5px;">—</div>
-                      </div>
-                      <div>
-                        <div class="text-tertiary" style="font-size: 11.5px; margin-bottom: 3px;">Grade</div>
-                        <div id="tk-grade" class="text-primary" style="font-size: 13.5px;">—</div>
-                      </div>
-                      <div>
-                        <div class="text-tertiary" style="font-size: 11.5px; margin-bottom: 3px;">Track</div>
-                        <div id="tk-mode" class="text-primary" style="font-size: 13.5px;">New student</div>
-                      </div>
-                      <div>
-                        <div class="text-tertiary" style="font-size: 11.5px; margin-bottom: 3px;">Guardian</div>
-                        <div id="tk-guardian" class="text-primary" style="font-size: 13.5px;">—</div>
-                      </div>
-                      <div>
-                        <div class="text-tertiary" style="font-size: 11.5px; margin-bottom: 3px;">Phone</div>
-                        <div id="tk-phone" class="text-primary" style="font-size: 13.5px;">—</div>
-                      </div>
-                      <div>
-                        <div class="text-tertiary" style="font-size: 11.5px; margin-bottom: 3px;">Email</div>
-                        <div id="tk-email" class="text-primary" style="font-size: 13.5px;">—</div>
-                      </div>
-                    </div>
-
-                    <div class="ticket-divider"></div>
-
-                    <div class="flex items-center text-tertiary" style="gap: 8px; font-size: 12px; padding-top: 16px;">
-                      <i data-lucide="calendar" style="width: 13px; height: 13px;"></i> A confirmation has been sent — decisions are shared within 3 business days.
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </form>
-
-            <!-- Form Navigation Buttons -->
-            <div class="flex items-center justify-between" style="margin-top: 26px;">
-              <button id="btn-back" type="button" class="btn-glass flex items-center hidden" style="padding: 10px 16px; gap: 6px; font-size: 13.5px;">
-                <i data-lucide="chevron-left" style="width: 15px; height: 15px;"></i> Back
-              </button>
-              <div id="nav-spacer" style="flex-grow: 1;"></div>
-              <button id="btn-next" type="button" class="btn-primary flex items-center" style="padding: 10px 18px; gap: 6px; font-size: 13.5px;">
-                <span>Continue</span> <i data-lucide="chevron-right" style="width: 15px; height: 15px;"></i>
-              </button>
-              <button id="btn-restart" type="button" class="btn-glass flex items-center hidden" style="padding: 10px 16px; gap: 6px; font-size: 13.5px; margin-left: auto;">
-                Start a new application
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Features Grid (Academics) -->
-    <section id="academics" style="padding: 80px 20px;">
-      <div class="max-w-7xl">
-        <div class="eyebrow lhs-mono">Academic pillars</div>
-        <h2 class="text-primary" style="font-size: clamp(1.9rem, 3.4vw, 2.6rem); font-weight: 600; letter-spacing: -0.02em; margin-top: 10px;">
-          Everything a student needs, none of the noise.
-        </h2>
-
-        <div class="grid md:grid-cols-2 lg:grid-cols-3" style="gap: 16px; margin-top: 36px;">
-          <div class="spot-card glass pillar-card" style="padding: 24px;">
-            <div class="pillar-icon"><i data-lucide="cpu" class="text-accent" style="width: 18px; height: 18px;"></i></div>
-            <h3 class="text-primary" style="font-size: 16px; font-weight: 600; margin-top: 16px; letter-spacing: -0.01em;">STEM Innovation Hub</h3>
-            <p class="text-secondary" style="font-size: 13.5px; line-height: 1.6; margin-top: 8px;">
-              Robotics, applied coding, and a fabrication lab where Grade 11–12 students ship real projects.
-            </p>
-          </div>
-
-          <div class="spot-card glass pillar-card" style="padding: 24px;">
-            <div class="pillar-icon"><i data-lucide="award" class="text-accent" style="width: 18px; height: 18px;"></i></div>
-            <h3 class="text-primary" style="font-size: 16px; font-weight: 600; margin-top: 16px; letter-spacing: -0.01em;">National exam excellence</h3>
-            <p class="text-secondary" style="font-size: 13.5px; line-height: 1.6; margin-top: 8px;">
-              Structured EGSECE preparation backed by a 30-year record of top regional results.
-            </p>
-          </div>
-
-          <div class="spot-card glass pillar-card" style="padding: 24px;">
-            <div class="pillar-icon"><i data-lucide="book-open" class="text-accent" style="width: 18px; height: 18px;"></i></div>
-            <h3 class="text-primary" style="font-size: 16px; font-weight: 600; margin-top: 16px; letter-spacing: -0.01em;">Arts &amp; humanities</h3>
-            <p class="text-secondary" style="font-size: 13.5px; line-height: 1.6; margin-top: 8px;">
-              Amharic and English literary societies, debate, and a termly student publication.
-            </p>
-          </div>
-
-          <div class="spot-card glass pillar-card" style="padding: 24px;">
-            <div class="pillar-icon"><i data-lucide="heart-pulse" class="text-accent" style="width: 18px; height: 18px;"></i></div>
-            <h3 class="text-primary" style="font-size: 16px; font-weight: 600; margin-top: 16px; letter-spacing: -0.01em;">Athletics &amp; wellness</h3>
-            <p class="text-secondary" style="font-size: 13.5px; line-height: 1.6; margin-top: 8px;">
-              A full sports complex plus a dedicated student counseling and wellness office.
-            </p>
-          </div>
-
-          <div class="spot-card glass pillar-card" style="padding: 24px;">
-            <div class="pillar-icon"><i data-lucide="globe" class="text-accent" style="width: 18px; height: 18px;"></i></div>
-            <h3 class="text-primary" style="font-size: 16px; font-weight: 600; margin-top: 16px; letter-spacing: -0.01em;">Global alumni network</h3>
-            <p class="text-secondary" style="font-size: 13.5px; line-height: 1.6; margin-top: 8px;">
-              5,200+ graduates placed across 40+ countries, active today as mentors for current students.
-            </p>
-          </div>
-
-          <div class="spot-card glass pillar-card" style="padding: 24px;">
-            <div class="pillar-icon"><i data-lucide="users" class="text-accent" style="width: 18px; height: 18px;"></i></div>
-            <h3 class="text-primary" style="font-size: 16px; font-weight: 600; margin-top: 16px; letter-spacing: -0.01em;">Leadership &amp; service</h3>
-            <p class="text-secondary" style="font-size: 13.5px; line-height: 1.6; margin-top: 8px;">
-              Student council, community service hours, and peer-led mentorship starting in Grade 9.
-            </p>
-          </div>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <!-- Footer -->
-  <footer id="footer" class="grid-bg" style="border-top: 1px solid var(--border-glass); padding: 56px 20px 28px;">
-    <div class="max-w-7xl relative">
-      <div class="grid md:grid-cols-4" style="gap: 32px; margin-bottom: 40px;">
-        <div style="grid-column: span 2;">
-          <div class="flex items-center" style="gap: 10px; margin-bottom: 14px;">
-            <span class="logo-mark lhs-mono">LH</span>
-            <span class="text-primary" style="font-weight: 600; font-size: 14.5px;">Lemlem High School</span>
-          </div>
-          <p class="text-tertiary" style="font-size: 13px; line-height: 1.6; max-width: 320px;">
-            Independent secondary school serving Grades 9–12 in Addis Ababa, Ethiopia, since 1996 · 1989 E.C.
-          </p>
-          <div class="flex" style="gap: 10px; margin-top: 18px;">
-            <a href="#top" class="social-btn" aria-label="Twitter"><i data-lucide="twitter" style="width: 14px; height: 14px;"></i></a>
-            <a href="#top" class="social-btn" aria-label="Linkedin"><i data-lucide="linkedin" style="width: 14px; height: 14px;"></i></a>
-            <a href="#top" class="social-btn" aria-label="Github"><i data-lucide="github" style="width: 14px; height: 14px;"></i></a>
-          </div>
-        </div>
-
-        <div>
-          <div class="text-primary" style="font-size: 13px; font-weight: 600; margin-bottom: 14px;">Quick links</div>
-          <a href="#about" class="footer-link text-tertiary">About</a>
-          <a href="#academics" class="footer-link text-tertiary">Academics</a>
-          <a href="#admissions" class="footer-link text-tertiary">Admissions</a>
-          <a href="#footer" class="footer-link text-tertiary">Contact</a>
-        </div>
-
-        <div>
-          <div class="text-primary" style="font-size: 13px; font-weight: 600; margin-bottom: 14px;">Contact</div>
-          <div class="flex items-center text-tertiary footer-link" style="gap: 8px;">
-            <i data-lucide="map-pin" style="width: 13px; height: 13px;"></i> Addis Ababa, Ethiopia
-          </div>
-          <div class="flex items-center text-tertiary footer-link" style="gap: 8px;">
-            <i data-lucide="phone" style="width: 13px; height: 13px;"></i> +251 11 555 0134
-          </div>
-          <div class="flex items-center text-tertiary footer-link" style="gap: 8px;">
-            <i data-lucide="mail" style="width: 13px; height: 13px;"></i> admissions@lemlemhigh.edu.et
-          </div>
-        </div>
-      </div>
-
-      <div class="footer-bottom flex items-center justify-between flex-wrap" style="padding-top: 22px; gap: 14px;">
-        <div class="flex items-center text-tertiary" style="gap: 8px; font-size: 12px;">
-          <span class="dot-live"></span> Portal status: all systems operational
-        </div>
-        <span class="text-tertiary lhs-mono" style="font-size: 12px;">© 2026 Lemlem High School</span>
-      </div>
-
-      <div class="watermark lhs-mono" aria-hidden="true">ልምለም · 30</div>
-    </div>
-  </footer>
-
-  <!-- Main Application Logic Script -->
-  <script>
-    /* Data */
-    const TIMELINE = [
-      { year: 1996, ec: "1989", title: "Foundation", body: "Lemlem High School opens in Addis Ababa with three classrooms and 120 students." },
-      { year: 2002, ec: "1994", title: "First graduating class", body: "The founding cohort sits the national exam and posts a 98% pass rate." },
-      { year: 2008, ec: "2000", title: "Science complex", body: "A dedicated laboratory wing opens alongside the first robotics and debate clubs." },
-      { year: 2014, ec: "2006", title: "STEM Innovation Hub", body: "Partnerships with local universities bring applied coding and engineering to the curriculum." },
-      { year: 2020, ec: "2012", title: "Hybrid learning", body: "A resilient hybrid platform keeps every student learning — the 100% acceptance streak begins." },
-      { year: 2026, ec: "2019", title: "30th anniversary", body: "5,200+ alumni across 40+ countries. The digital campus portal you're using now goes live." }
-    ];
-
-    const PROGRAMS = [
-      { key: "robotics", name: "Robotics Lab", students: 84, mentor: "Eng. Selam T." },
-      { key: "ai", name: "AI & Data Club", students: 61, mentor: "Dr. Nahom G." },
-      { key: "green", name: "Green Energy Lab", students: 47, mentor: "Eng. Betelhem A." },
-      { key: "app", name: "App Dev Studio", students: 73, mentor: "Mr. Kaleb M." }
-    ];
-
-    const DOCS = [
-      { key: "transcript", label: "Academic transcript", hint: "Most recent report card or transcript" },
-      { key: "id", label: "Birth certificate / ID", hint: "Government-issued, or kebele ID" },
-      { key: "photo", label: "Passport photo", hint: "Recent, plain background" }
-    ];
-
-    const STEP_LABELS = ["Student & grade", "Guardian details", "Documents", "Confirmation"];
-
-    /* Application State */
-    let portalMode = "new";
-    let portalStep = 1;
-    let selectedGrade = "";
-    let selectedProgram = PROGRAMS[0].key;
-    let docFiles = {};
-    let uploadTimers = {};
-
-    /* Utilities */
-    function genAppId() {
-      return "LHS-2026-" + Math.random().toString(36).slice(2, 7).toUpperCase();
-    }
-
-    /* Initialize Lucide Icons */
-    function renderIcons() {
-      if (window.lucide) {
-        lucide.createIcons();
-      }
-    }
-
-    /* Counter Animation for Stat Tiles */
-    function animateCounters() {
-      const duration = 1600;
-      const elements = document.querySelectorAll('.stat-count');
-      elements.forEach(el => {
-        const target = parseInt(el.getAttribute('data-target'), 10);
-        const suffix = el.getAttribute('data-suffix');
-        let startTs = null;
-
-        function tick(ts) {
-          if (!startTs) startTs = ts;
-          const progress = Math.min((ts - startTs) / duration, 1);
-          const eased = 1 - Math.pow(1 - progress, 3);
-          const currentVal = Math.floor(eased * target);
-          el.innerText = currentVal.toLocaleString() + suffix;
-          if (progress < 1) requestAnimationFrame(tick);
-          else el.innerText = target.toLocaleString() + suffix;
-        }
-        requestAnimationFrame(tick);
-      });
-    }
-
-    /* Spotlight Effect */
-    function initSpotlight() {
-      document.querySelectorAll('.spot-card').forEach(card => {
-        card.addEventListener('mousemove', e => {
-          const rect = card.getBoundingClientRect();
-          card.style.setProperty('--mx', `${e.clientX - rect.left}px`);
-          card.style.setProperty('--my', `${e.clientY - rect.top}px`);
-        });
-      });
-    }
-
-    /* Timeline Slider Setup */
-    function initTimeline() {
-      const slider = document.getElementById('timeline-slider');
-      const dotsContainer = document.getElementById('timeline-dots');
-      
-      TIMELINE.forEach((t, i) => {
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = `year-dot lhs-mono ${i === TIMELINE.length - 1 ? 'active' : ''}`;
-        btn.innerText = t.year;
-        btn.addEventListener('click', () => {
-          slider.value = i;
-          updateTimeline(i);
-        });
-        dotsContainer.appendChild(btn);
-      });
-
-      slider.addEventListener('input', e => {
-        updateTimeline(parseInt(e.target.value, 10));
-      });
-    }
-
-    function updateTimeline(idx) {
-      const item = TIMELINE[idx];
-      document.getElementById('tl-date').innerText = `G.C. ${item.year} · E.C. ${item.ec}`;
-      document.getElementById('tl-title').innerText = item.title;
-      document.getElementById('tl-body').innerText = item.body;
-
-      const dots = document.querySelectorAll('#timeline-dots .year-dot');
-      dots.forEach((dot, i) => {
-        if (i === idx) dot.classList.add('active');
-        else dot.classList.remove('active');
-      });
-    }
-
-    /* Alumni Ticker */
-    function initAlumniTicker() {
-      let count = 5214;
-      setInterval(() => {
-        if (Math.random() > 0.55) {
-          count++;
-          document.getElementById('alumni-ticker').innerText = count.toLocaleString();
-        }
-      }, 2600);
-    }
-
-    /* STEM Section */
-    function initStemSection() {
-      const chipsContainer = document.getElementById('stem-chips');
-      PROGRAMS.forEach(p => {
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = `chip lhs-mono ${p.key === selectedProgram ? 'active' : ''}`;
-        btn.innerText = p.name;
-        btn.addEventListener('click', () => {
-          selectedProgram = p.key;
-          document.querySelectorAll('#stem-chips .chip').forEach(c => c.classList.remove('active'));
-          btn.classList.add('active');
-          renderStemCode();
-        });
-        chipsContainer.appendChild(btn);
-      });
-      renderStemCode();
-    }
-
-    function renderStemCode() {
-      const active = PROGRAMS.find(p => p.key === selectedProgram);
-      const html = `{\n  "program": "<span class="tok-str">${active.name}</span>",\n  "students_enrolled": <span class="tok-num">${active.students}</span>,\n  "faculty_mentor": "<span class="tok-str">${active.mentor}</span>",\n  "status": <span class="tok-key">"active"</span>\n}`;
-      document.getElementById('stem-json').innerHTML = html;
-    }
-
-    /* Admissions Portal logic */
-    function initPortal() {
-      // Toggle Modes
-      const modeNew = document.getElementById('mode-new');
-      const modeReturning = document.getElementById('mode-returning');
-      const lblPrevOrId = document.getElementById('lbl-prev-or-id');
-      const inpPrevOrId = document.getElementById('inp-prevOrId');
-      const hiddenTrack = document.getElementById('hidden-track');
-
-      modeNew.addEventListener('click', () => {
-        portalMode = 'new';
-        modeNew.classList.add('active');
-        modeReturning.classList.remove('active');
-        lblPrevOrId.innerText = 'Previous school';
-        inpPrevOrId.placeholder = 'e.g. Bole Elementary School';
-        inpPrevOrId.classList.remove('lhs-mono');
-        if(hiddenTrack) hiddenTrack.value = 'New Student';
-        clearErrors();
-      });
-
-      modeReturning.addEventListener('click', () => {
-        portalMode = 'returning';
-        modeReturning.classList.add('active');
-        modeNew.classList.remove('active');
-        lblPrevOrId.innerText = 'Existing student ID';
-        inpPrevOrId.placeholder = 'e.g. LHS-2023-04812';
-        inpPrevOrId.classList.add('lhs-mono');
-        if(hiddenTrack) hiddenTrack.value = 'Returning Student';
-        clearErrors();
-      });
-
-      // Grade chips
-      document.querySelectorAll('#grade-chips .grade-chip').forEach(chip => {
-        chip.addEventListener('click', () => {
-          selectedGrade = chip.getAttribute('data-grade');
-          document.getElementById('hidden-grade').value = "Grade " + selectedGrade;
-          document.querySelectorAll('#grade-chips .grade-chip').forEach(c => c.classList.remove('active'));
-          chip.classList.add('active');
-          hideError('grade');
-        });
-      });
-
-      // Documents List Render
-      renderDocsList();
-
-      // Navigation Buttons
-      document.getElementById('btn-next').addEventListener('click', nextStep);
-      document.getElementById('btn-back').addEventListener('click', backStep);
-      document.getElementById('btn-restart').addEventListener('click', restartPortal);
-
-      renderPortal();
-    }
-
-    function renderDocsList() {
-      const container = document.getElementById('docs-list');
-      container.innerHTML = '';
-      DOCS.forEach(d => {
-        const fileObj = docFiles[d.key];
-        const box = document.createElement('div');
-        box.className = `dropzone ${fileObj && fileObj.error ? 'error' : ''}`;
-        box.style.cssText = 'margin-bottom: 12px; padding: 16px;';
-
-        box.innerHTML = `
-          <div class="flex items-center justify-between">
-            <div class="flex items-center" style="gap: 12px;">
-              <span class="doc-icon"><i data-lucide="file-text" class="text-accent" style="width: 16px; height: 16px;"></i></span>
-              <div>
-                <div class="text-primary" style="font-size: 13.5px; font-weight: 500;">${d.label}</div>
-                <div class="text-tertiary" style="font-size: 12px;">${fileObj ? fileObj.name : d.hint}</div>
-              </div>
-            </div>
-            <label class="btn-glass upload-btn lhs-mono">
-              <i data-lucide="upload-cloud" style="width: 13px; height: 13px;"></i>
-              ${fileObj && fileObj.progress === 100 ? 'Replace' : 'Browse'}
-              <input type="file" name="${d.label}" accept="image/*,.pdf" style="display: none;" onchange="handleFileSelect(event, '${d.key}')">
-            </label>
-          </div>
-          ${fileObj ? `<div class="upload-track" style="margin-top: 12px;"><div class="upload-fill" style="width: ${fileObj.progress}%;"></div></div>` : ''}
-          <div id="err-doc-${d.key}" class="error-text ${fileObj && fileObj.error ? '' : 'hidden'}">
-            <i data-lucide="x" style="width: 12px; height: 12px;"></i> <span>${fileObj && fileObj.error ? fileObj.error : ''}</span>
-          </div>
-        `;
-
-        box.addEventListener('dragover', e => { e.preventDefault(); box.classList.add('drag'); });
-        box.addEventListener('dragleave', () => box.classList.remove('drag'));
-        box.addEventListener('drop', e => {
-          e.preventDefault();
-          box.classList.remove('drag');
-          const file = e.dataTransfer.files && e.dataTransfer.files[0];
-          simulateUpload(d.key, file ? file.name : `${d.key}-document.pdf`);
-        });
-
-        container.appendChild(box);
-      });
-      renderIcons();
-    }
-
-    function handleFileSelect(e, key) {
-      const file = e.target.files && e.target.files[0];
-      if (file) simulateUpload(key, file.name);
-    }
-
-    function simulateUpload(key, name) {
-      docFiles[key] = { name, progress: 0, error: null };
-      renderDocsList();
-
-      if (uploadTimers[key]) clearInterval(uploadTimers[key]);
-      let p = 0;
-      uploadTimers[key] = setInterval(() => {
-        p += Math.random() * 26 + 12;
-        if (p >= 100) {
-          p = 100;
-          clearInterval(uploadTimers[key]);
-        }
-        docFiles[key].progress = Math.round(p);
-        renderDocsList();
-      }, 220);
-    }
-
-    function renderProgressRail() {
-      const rail = document.getElementById('progress-rail');
-      rail.innerHTML = '';
-
-      STEP_LABELS.forEach((label, i) => {
-        const n = i + 1;
-        const state = n < portalStep ? 'done' : n === portalStep ? 'active' : 'todo';
-        
-        const item = document.createElement('div');
-        item.className = 'flex items-center';
-        item.style.gap = '9px';
-        item.innerHTML = `
-          <span class="step-dot lhs-mono ${state}">${state === 'done' ? '<i data-lucide="check" style="width:12px;height:12px;"></i>' : n}</span>
-          <span class="text-${state === 'todo' ? 'tertiary' : 'primary'} hidden sm:inline" style="font-size: 13px;">${label}</span>
-        `;
-        rail.appendChild(item);
-
-        if (n !== STEP_LABELS.length) {
-          const line = document.createElement('span');
-          line.className = `step-line ${state === 'done' ? 'done' : ''}`;
-          rail.appendChild(line);
-        }
-      });
-      renderIcons();
-    }
-
-    function showError(id, message) {
-      const errEl = document.getElementById(`err-${id}`);
-      const inpEl = document.getElementById(`inp-${id}`);
-      if (errEl) {
-        errEl.querySelector('span').innerText = message;
-        errEl.classList.remove('hidden');
-      }
-      if (inpEl) inpEl.classList.add('error');
-    }
-
-    function hideError(id) {
-      const errEl = document.getElementById(`err-${id}`);
-      const inpEl = document.getElementById(`inp-${id}`);
-      if (errEl) errEl.classList.add('hidden');
-      if (inpEl) inpEl.classList.remove('error');
-    }
-
-    function clearErrors() {
-      ['fullName', 'dob', 'prevOrId', 'grade', 'guardianName', 'relationship', 'phone', 'email', 'address'].forEach(hideError);
-    }
-
-    function validateStep(n) {
-      let valid = true;
-      clearErrors();
-
-      if (n === 1) {
-        const fn = document.getElementById('inp-fullName').value.trim();
-        const dob = document.getElementById('inp-dob').value;
-        const prevOrId = document.getElementById('inp-prevOrId').value.trim();
-
-        if (!fn) { showError('fullName', "Enter the student's full name."); valid = false; }
-        if (!dob) { showError('dob', "Select a date of birth."); valid = false; }
-        if (portalMode === 'new' && !prevOrId) { showError('prevOrId', "Enter the previous school."); valid = false; }
-        if (portalMode === 'returning' && !prevOrId) { showError('prevOrId', "Enter the existing student ID."); valid = false; }
-        if (!selectedGrade) { showError('grade', "Choose a grade."); valid = false; }
-      }
-
-      if (n === 2) {
-        const gn = document.getElementById('inp-guardianName').value.trim();
-        const rel = document.getElementById('inp-relationship').value.trim();
-        const phone = document.getElementById('inp-phone').value.trim();
-        const email = document.getElementById('inp-email').value.trim();
-        const address = document.getElementById('inp-address').value.trim();
-
-        if (!gn) { showError('guardianName', "Enter a guardian's full name."); valid = false; }
-        if (!rel) { showError('relationship', "Enter the relationship to student."); valid = false; }
-        if (!/^[+0-9 ()-]{7,}$/.test(phone)) { showError('phone', "Enter a valid phone number."); valid = false; }
-        if (!/^\S+@\S+\.\S+$/.test(email)) { showError('email', "Enter a valid email address."); valid = false; }
-        if (!address) { showError('address', "Enter a home address."); valid = false; }
-      }
-
-      if (n === 3) {
-        DOCS.forEach(d => {
-          if (!docFiles[d.key] || docFiles[d.key].progress < 100) {
-            docFiles[d.key] = docFiles[d.key] || {};
-            docFiles[d.key].error = "Upload this document to continue.";
-            valid = false;
-          }
-        });
-        renderDocsList();
-      }
-
-      return valid;
-    }
-
-    function nextStep() {
-      if (validateStep(portalStep)) {
-        if (portalStep === 3) {
-          // Submit form in background via AJAX to formsubmit.co
-          const formEl = document.getElementById('portal-form');
-          const formData = new FormData(formEl);
-          
-          fetch(formEl.action, {
-            method: 'POST',
-            body: formData,
-            headers: {
-              'Accept': 'application/json'
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: {
+                            900: '#090A0F',
+                            800: '#12141C',
+                            700: '#1C1F2E',
+                            600: '#2A2E43',
+                        },
+                        brand: {
+                            gold: '#D4AF37',
+                            emerald: '#10B981',
+                            accent: '#6366F1'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
             }
-          }).catch(err => console.log('Submission dispatched', err));
-
-          portalStep = 4;
-          renderPortal();
-        } else {
-          portalStep = Math.min(portalStep + 1, 4);
-          renderPortal();
         }
-      }
-    }
+    </script>
 
-    function backStep() {
-      clearErrors();
-      portalStep = Math.max(portalStep - 1, 1);
-      renderPortal();
-    }
+    <!-- Google Fonts & Lucide Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
 
-    function restartPortal() {
-      portalStep = 1;
-      selectedGrade = "";
-      docFiles = {};
-      clearErrors();
+    <!-- React, React DOM, Babel, and Framer Motion CDNs -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
+</head>
+<body class="bg-dark-900 text-slate-100 font-sans antialiased selection:bg-brand-emerald selection:text-white min-h-screen">
 
-      document.querySelectorAll('#form-steps input').forEach(i => i.value = '');
-      document.querySelectorAll('#grade-chips .grade-chip').forEach(c => c.classList.remove('active'));
-      renderDocsList();
-      renderPortal();
-    }
+    <!-- React Root -->
+    <div id="root"></div>
 
-    function renderPortal() {
-      renderProgressRail();
+    <!-- React Application Component Script -->
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        const { motion, AnimatePresence } = window.Motion;
 
-      for (let i = 1; i <= 4; i++) {
-        const el = document.getElementById(`step-${i}`);
-        if (i === portalStep) el.classList.remove('hidden');
-        else el.classList.add('hidden');
-      }
+        // Data: Timeline
+        const timelineData = [
+            { year: "1996", title: "Foundation", description: "Lemlem High School was founded with a vision to deliver world-class secondary education." },
+            { year: "2006", title: "Campus Expansion", description: "Expanded academic wings and built modern science laboratories for high school students." },
+            { year: "2016", title: "Digital Integration", description: "Pioneered interactive smart classrooms and computer science curriculum integration." },
+            { year: "2026", title: "30th Anniversary", description: "Celebrating three decades of academic excellence, innovation, and leadership." }
+        ];
 
-      const btnBack = document.getElementById('btn-back');
-      const btnNext = document.getElementById('btn-next');
-      const btnRestart = document.getElementById('btn-restart');
-
-      if (portalStep > 1 && portalStep < 4) btnBack.classList.remove('hidden');
-      else btnBack.classList.add('hidden');
-
-      if (portalStep < 3) {
-        btnNext.classList.remove('hidden');
-        btnNext.querySelector('span').innerText = "Continue";
-      } else if (portalStep === 3) {
-        btnNext.classList.remove('hidden');
-        btnNext.querySelector('span').innerText = "Submit application";
-      } else {
-        btnNext.classList.add('hidden');
-      }
-
-      if (portalStep === 4) {
-        btnRestart.classList.remove('hidden');
-        // Render Ticket Data
-        document.getElementById('ticket-appid').innerText = genAppId();
-        document.getElementById('tk-name').innerText = document.getElementById('inp-fullName').value || '—';
-        document.getElementById('tk-grade').innerText = selectedGrade ? `Grade ${selectedGrade}` : '—';
-        document.getElementById('tk-mode').innerText = portalMode === 'new' ? 'New student' : 'Returning student';
-        document.getElementById('tk-guardian').innerText = document.getElementById('inp-guardianName').value || '—';
-        document.getElementById('tk-phone').innerText = document.getElementById('inp-phone').value || '—';
-        document.getElementById('tk-email').innerText = document.getElementById('inp-email').value || '—';
-      } else {
-        btnRestart.classList.add('hidden');
-      }
-    }
-
-    /* Event Listeners Initialization */
-    document.addEventListener('DOMContentLoaded', () => {
-      // Header scroll background effect
-      const header = document.getElementById('main-header');
-      window.addEventListener('scroll', () => {
-        if (window.scrollY > 12) header.classList.add('nav-scrolled');
-        else header.classList.remove('nav-scrolled');
-      });
-
-      // Mobile Menu Toggle
-      const menuToggle = document.getElementById('menu-toggle');
-      const mobileMenu = document.getElementById('mobile-menu');
-      menuToggle.addEventListener('click', () => {
-        mobileMenu.classList.toggle('hidden');
-      });
-
-      // Mobile menu close on click
-      document.querySelectorAll('#mobile-menu a').forEach(a => {
-        a.addEventListener('click', () => mobileMenu.classList.add('hidden'));
-      });
-
-      // Keyboard Shortcut (⌘L / Ctrl+L)
-      window.addEventListener('keydown', e => {
-        if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'l') {
-          e.preventDefault();
-          document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' });
+        // Component: Announcement Bar
+        function AnnouncementBar() {
+            return (
+                <div class="bg-gradient-to-r from-brand-emerald via-indigo-600 to-brand-gold p-0.5">
+                    <div class="bg-dark-900/90 backdrop-blur-md px-4 py-2 text-center text-xs sm:text-sm font-medium text-slate-200 flex items-center justify-center space-x-2">
+                        <span class="bg-brand-gold/20 text-brand-gold px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider">Milestone</span>
+                        <span>Celebrating 30 Years of Lemlem High School Excellence 🎉</span>
+                    </div>
+                </div>
+            );
         }
-      });
 
-      /* Run Initializations */
-      renderIcons();
-      animateCounters();
-      initSpotlight();
-      initTimeline();
-      initAlumniTicker();
-      initStemSection();
-      initPortal();
-    });
-  </script>
+        // Component: Navbar
+        function Navbar() {
+            return (
+                <nav class="sticky top-0 z-50 backdrop-blur-xl bg-dark-900/70 border-b border-white/10">
+                    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-emerald to-brand-gold flex items-center justify-center font-bold text-dark-900 text-xl shadow-lg shadow-emerald-500/20">
+                                L
+                            </div>
+                            <span class="font-bold text-lg tracking-tight text-white">Lemlem <span class="text-brand-gold font-light">High</span></span>
+                        </div>
+                        <div class="hidden md:flex space-x-8 text-sm font-medium text-slate-300">
+                            <a href="#hero" class="hover:text-white transition-colors">Home</a>
+                            <a href="#heritage" class="hover:text-white transition-colors">30th Heritage</a>
+                            <a href="#registration" class="hover:text-white transition-colors">Admissions</a>
+                        </div>
+                        <a href="#registration" class="bg-white text-dark-900 hover:bg-slate-200 font-semibold text-xs sm:text-sm px-4 py-2 rounded-xl transition-all shadow-md">
+                            Register Now
+                        </a>
+                    </div>
+                </nav>
+            );
+        }
+
+        // Component: Hero Section
+        function Hero() {
+            return (
+                <section id="hero" class="relative py-20 sm:py-32 overflow-hidden text-center px-4">
+                    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-brand-emerald/10 blur-[120px] rounded-full pointer-events-none"></div>
+                    <div class="max-w-4xl mx-auto relative z-10">
+                        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+                            <span class="inline-flex items-center space-x-2 px-3 py-1 rounded-full border border-white/10 bg-white/5 text-slate-300 text-xs sm:text-sm mb-6">
+                                <span>30th Anniversary Edition</span>
+                            </span>
+                            <h1 class="text-4xl sm:text-7xl font-extrabold tracking-tight text-white leading-tight">
+                                Three Decades of <br />
+                                <span class="bg-gradient-to-r from-brand-emerald via-teal-300 to-brand-gold bg-clip-text text-transparent">
+                                    Shaping Tomorrow.
+                                </span>
+                            </h1>
+                            <p class="mt-6 text-slate-400 text-base sm:text-xl max-w-2xl mx-auto font-normal">
+                                Welcome to Lemlem High School's digital portal. Enrolling newcomer and returning students for the upcoming academic year.
+                            </p>
+                            <div class="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+                                <a href="#registration" class="w-full sm:w-auto bg-brand-emerald hover:bg-emerald-600 text-white font-semibold px-8 py-3.5 rounded-2xl transition-all shadow-lg shadow-emerald-500/25">
+                                    Student Registration
+                                </a>
+                                <a href="#heritage" class="w-full sm:w-auto bg-dark-800 hover:bg-dark-700 text-slate-300 border border-white/10 font-semibold px-8 py-3.5 rounded-2xl transition-all">
+                                    Explore Legacy
+                                </a>
+                            </div>
+                        </motion.div>
+                    </div>
+                </section>
+            );
+        }
+
+        // Component: Legacy Timeline
+        function LegacyTimeline() {
+            return (
+                <section id="heritage" class="py-20 max-w-5xl mx-auto px-4">
+                    <div class="text-center mb-16">
+                        <span class="text-brand-gold font-semibold tracking-widest uppercase text-xs">Our Journey</span>
+                        <h2 class="text-3xl sm:text-4xl font-extrabold text-white mt-2">30 Years of Educational Leadership</h2>
+                    </div>
+                    <div class="space-y-6">
+                        {timelineData.map((item, idx) => (
+                            <div key={idx} class="bg-dark-800/60 border border-white/10 rounded-2xl p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                                <span class="text-2xl font-extrabold text-brand-gold font-mono">{item.year}</span>
+                                <div class="flex-1">
+                                    <h3 class="text-lg font-bold text-white">{item.title}</h3>
+                                    <p class="text-slate-400 text-sm mt-1">{item.description}</p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </section>
+            );
+        }
+
+        // Component: Registration Portal
+        function RegistrationPortal() {
+            const [tab, setTab] = useState('newcomer');
+            const [submitted, setSubmitted] = useState(false);
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                setSubmitted(true);
+            };
+
+            return (
+                <section id="registration" class="py-20 max-w-3xl mx-auto px-4">
+                    <div class="bg-dark-800 border border-white/10 rounded-3xl p-6 sm:p-10 shadow-2xl">
+                        <div class="text-center mb-8">
+                            <h2 class="text-2xl sm:text-3xl font-extrabold text-white">Student Registration</h2>
+                            <p class="text-slate-400 text-sm mt-2">Select your enrollment category below</p>
+                            
+                            {/* Toggle */}
+                            <div class="flex justify-center mt-6">
+                                <div class="bg-dark-900 p-1 rounded-xl border border-white/10 flex space-x-1">
+                                    <button 
+                                        onClick={() => { setTab('newcomer'); setSubmitted(false); }} 
+                                        class={`px-5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all ${tab === 'newcomer' ? 'bg-brand-emerald text-white' : 'text-slate-400'}`}>
+                                        Newcomer Student
+                                    </button>
+                                    <button 
+                                        onClick={() => { setTab('returning'); setSubmitted(false); }} 
+                                        class={`px-5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all ${tab === 'returning' ? 'bg-brand-emerald text-white' : 'text-slate-400'}`}>
+                                        Returning Student
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        {submitted ? (
+                            <div class="text-center py-10 space-y-4">
+                                <div class="w-16 h-16 bg-brand-emerald/20 text-brand-emerald rounded-full flex items-center justify-center mx-auto text-2xl font-bold">✓</div>
+                                <h3 class="text-xl font-bold text-white">Registration Submitted!</h3>
+                                <p class="text-slate-400 text-sm">Thank you for registering for Lemlem High School's 30th Anniversary academic year.</p>
+                                <button onClick={() => setSubmitted(false)} class="text-brand-emerald text-sm font-semibold hover:underline">Submit another response</button>
+                            </div>
+                        ) : (
+                            <form onSubmit={handleSubmit} class="space-y-4 text-left">
+                                {tab === 'newcomer' ? (
+                                    <>
+                                        <div>
+                                            <label class="block text-xs font-medium text-slate-300 mb-1">Full Student Name</label>
+                                            <input required type="text" placeholder="John Doe" class="w-full bg-dark-900 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand-emerald" />
+                                        </div>
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            <div>
+                                                <label class="block text-xs font-medium text-slate-300 mb-1">Grade Applying For</label>
+                                                <select class="w-full bg-dark-900 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand-emerald">
+                                                    <option>Grade 9</option>
+                                                    <option>Grade 10</option>
+                                                    <option>Grade 11</option>
+                                                    <option>Grade 12</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-medium text-slate-300 mb-1">Previous School</label>
+                                                <input required type="text" placeholder="School Name" class="w-full bg-dark-900 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand-emerald" />
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-medium text-slate-300 mb-1">Guardian Phone Number</label>
+                                            <input required type="tel" placeholder="+251 ..." class="w-full bg-dark-900 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand-emerald" />
+                                        </div>
+                                    </>
+                                ) : (
+                                    <>
+                                        <div>
+                                            <label class="block text-xs font-medium text-slate-300 mb-1">Student ID Number</label>
+                                            <input required type="text" placeholder="LHS-XXXX" class="w-full bg-dark-900 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand-emerald" />
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-medium text-slate-300 mb-1">Full Name</label>
+                                            <input required type="text" placeholder="John Doe" class="w-full bg-dark-900 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand-emerald" />
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-medium text-slate-300 mb-1">Promoting To Grade</label>
+                                            <select class="w-full bg-dark-900 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand-emerald">
+                                                <option>Grade 10</option>
+                                                <option>Grade 11</option>
+                                                <option>Grade 12</option>
+                                            </select>
+                                        </div>
+                                    </>
+                                )}
+                                <button type="submit" class="w-full bg-brand-emerald hover:bg-emerald-600 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-emerald-500/20 mt-4">
+                                    Complete Registration
+                                </button>
+                            </form>
+                        )}
+                    </div>
+                </section>
+            );
+        }
+
+        // Main App Layout
+        function App() {
+            return (
+                <div class="min-h-screen flex flex-col justify-between">
+                    <div>
+                        <AnnouncementBar />
+                        <Navbar />
+                        <Hero />
+                        <LegacyTimeline />
+                        <RegistrationPortal />
+                    </div>
+                    <footer class="border-t border-white/10 py-8 text-center text-xs text-slate-500">
+                        © 1996 - 2026 Lemlem High School. 30 Years of Excellence.
+                    </footer>
+                </div>
+            );
+        }
+
+        // Render App
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
 </body>
 </html>
 
