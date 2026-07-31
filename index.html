@@ -37,45 +37,44 @@
 <script type="text/babel" data-presets="react">
 const { useState, useEffect, useRef, useCallback, Fragment } = React;
 
-// Safely pull icons from LucideReact global object
+// Safely pull icons from LucideReact global object with fallback
 const lucideObj = window.LucideReact?.icons || window.LucideReact || {};
-const {
-  GraduationCap = () => null,
-  Users = () => null,
-  Cpu = () => null,
-  Globe = () => null,
-  Award = () => null,
-  BookOpen = () => null,
-  HeartPulse = () => null,
-  ChevronRight = () => null,
-  ChevronLeft = () => null,
-  Check = () => null,
-  X = () => null,
-  Menu = () => null,
-  ArrowRight = () => null,
-  ArrowUpRight = () => null,
-  UploadCloud = () => null,
-  FileText = () => null,
-  Sparkles = () => null,
-  Calendar = () => null,
-  MapPin = () => null,
-  Mail = () => null,
-  Phone = () => null,
-  ShieldCheck = () => null,
-  CheckCircle2 = () => null,
-  Github = () => null,
-  Twitter = () => null,
-  Linkedin = () => null,
-  CreditCard = () => null,
-  Receipt = () => null,
-  Loader2 = () => null,
-} = lucideObj;
+const safeIcon = (iconComp) => (typeof iconComp === 'function' ? iconComp : () => null);
+
+const GraduationCap = safeIcon(lucideObj.GraduationCap);
+const Users = safeIcon(lucideObj.Users);
+const Cpu = safeIcon(lucideObj.Cpu);
+const Globe = safeIcon(lucideObj.Globe);
+const Award = safeIcon(lucideObj.Award);
+const BookOpen = safeIcon(lucideObj.BookOpen);
+const HeartPulse = safeIcon(lucideObj.HeartPulse);
+const ChevronRight = safeIcon(lucideObj.ChevronRight);
+const ChevronLeft = safeIcon(lucideObj.ChevronLeft);
+const Check = safeIcon(lucideObj.Check);
+const X = safeIcon(lucideObj.X);
+const Menu = safeIcon(lucideObj.Menu);
+const ArrowRight = safeIcon(lucideObj.ArrowRight);
+const ArrowUpRight = safeIcon(lucideObj.ArrowUpRight);
+const UploadCloud = safeIcon(lucideObj.UploadCloud);
+const FileText = safeIcon(lucideObj.FileText);
+const Sparkles = safeIcon(lucideObj.Sparkles);
+const Calendar = safeIcon(lucideObj.Calendar);
+const MapPin = safeIcon(lucideObj.MapPin);
+const Mail = safeIcon(lucideObj.Mail);
+const Phone = safeIcon(lucideObj.Phone);
+const ShieldCheck = safeIcon(lucideObj.ShieldCheck);
+const CheckCircle2 = safeIcon(lucideObj.CheckCircle2);
+const Github = safeIcon(lucideObj.Github);
+const Twitter = safeIcon(lucideObj.Twitter);
+const Linkedin = safeIcon(lucideObj.Linkedin);
+const CreditCard = safeIcon(lucideObj.CreditCard);
+const Receipt = safeIcon(lucideObj.Receipt);
+const Loader2 = safeIcon(lucideObj.Loader2);
 
 /* ------------------------------------------------------------------ */
 /*  Animation Utilities & Components                                  */
 /* ------------------------------------------------------------------ */
 
-// Scroll-triggered Reveal Wrapper
 function Reveal({ children, className = "", delay = 0, style = {}, direction = "up" }) {
   const [isVisible, setIsVisible] = useState(false);
   const domRef = useRef(null);
@@ -588,7 +587,7 @@ function AlumniCard() {
 
 function StemCard() {
   const [sel, setSel] = useState(PROGRAMS[0].key);
-  const active = PROGRAMS.find((p) => p.key === sel);
+  const active = PROGRAMS.find((p) => p.key === sel) || PROGRAMS[0];
 
   return (
     <SpotlightCard className="bento-card col-span-12" style={{ padding: "26px" }}>
@@ -865,7 +864,6 @@ function RegistrationPortal() {
       formData.append("Email", form.email);
       formData.append("Home Address", form.address);
 
-      // Append files if available
       if (files["transcript"]?.rawFile) formData.append("transcript", files["transcript"].rawFile);
       if (files["id"]?.rawFile) formData.append("id_document", files["id"].rawFile);
       if (files["photo"]?.rawFile) formData.append("passport_photo", files["photo"].rawFile);
@@ -882,9 +880,11 @@ function RegistrationPortal() {
       if (response.ok) {
         setIsSubmitted(true);
       } else {
-        const data = await response.json();
-        if (data && data.errors) {
+        const data = await response.json().catch(() => ({}));
+        if (data && Array.isArray(data.errors)) {
           setSubmitError(data.errors.map(err => err.message).join(", "));
+        } else if (data && data.error) {
+          setSubmitError(data.error);
         } else {
           setSubmitError("Failed to submit application. Please try again.");
         }
@@ -1140,7 +1140,6 @@ function RegistrationPortal() {
 
               {step === 4 && !isSubmitted && (
                 <div>
-                  {/* Payment Details Notice */}
                   <div className="glass" style={{ borderRadius: "12px", padding: "18px", marginBottom: "20px", border: "1px solid var(--border-glass-hover)" }}>
                     <div className="flex items-center justify-between" style={{ marginBottom: "12px" }}>
                       <div className="flex items-center" style={{ gap: "10px" }}>
@@ -1172,7 +1171,6 @@ function RegistrationPortal() {
                     </div>
                   </div>
 
-                  {/* Receipt Upload Dropzone */}
                   <span className="text-secondary" style={{ fontSize: "13px", display: "block", marginBottom: "8px" }}>
                     Upload Payment Receipt / Deposit Slip
                   </span>
@@ -1402,7 +1400,6 @@ function App() {
     <div className="lhs">
       <style>{`
         :root {
-          /* NAVY GREEN PALETTE */
           --bg-void: #020604;
           --bg-elevated: #06120b;
           --bg-card: rgba(10, 28, 18, 0.45);
@@ -1442,7 +1439,6 @@ function App() {
         .lhs input { font-family: var(--font-sans); }
         html { scroll-behavior: smooth; }
 
-        /* Smooth Scroll reveal animations */
         .reveal-box {
           opacity: 0;
           transform: translateY(28px);
@@ -1498,10 +1494,8 @@ function App() {
         .text-accent { color: var(--accent-blue-bright); }
         .error-text { color: var(--red); }
 
-        /* layout helpers */
         .max-w-7xl { max-width: 1240px; }
 
-        /* ambient noise + grid */
         .lhs::before {
           content: '';
           position: fixed;
@@ -1537,7 +1531,6 @@ function App() {
 
         section, header, footer { position: relative; z-index: 1; }
 
-        /* nav */
         .nav-shell { background: transparent; border-bottom: 1px solid transparent; transition: background .35s ease, border-color .35s ease, backdrop-filter .35s ease; }
         .nav-scrolled { background: rgba(2, 6, 4, 0.85); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid var(--border-glass); }
         .logo-mark {
@@ -1554,7 +1547,6 @@ function App() {
         .mobile-link { display: block; padding: 12px 10px; font-size: 14px; border-radius: 10px; }
         .mobile-link:hover { background: rgba(16, 185, 129, 0.08); color: var(--text-primary); }
 
-        /* buttons */
         .btn-primary {
           display: inline-flex; align-items: center; justify-content: center; border-radius: 10px;
           background: linear-gradient(180deg, #10b981, #059669);
@@ -1577,7 +1569,6 @@ function App() {
         }
         .btn-glass:hover { background: var(--bg-card-hover); border-color: var(--border-glass-hover); transform: translateY(-2px); }
 
-        /* pill badge */
         .pill { border-radius: 999px; border: 1px solid var(--border-glass); background: var(--bg-card); transition: border-color .25s, background .25s, transform .25s; }
         .pill:hover { border-color: rgba(16,185,129,0.55); background: rgba(16,185,129,0.12); transform: translateY(-2px); }
         .pill-icon { color: var(--accent-blue-bright); display: inline-flex; }
@@ -1588,7 +1579,6 @@ function App() {
           padding: 2px 7px; color: var(--text-secondary);
         }
 
-        /* glass surfaces + spotlight */
         .glass { background: var(--bg-card); border: 1px solid var(--border-glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
         .spot-card { position: relative; overflow: hidden; border-radius: 18px; transition: border-color .35s ease, transform .35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow .35s ease; }
         .spot-card:hover { border-color: var(--border-glass-hover); transform: translateY(-4px); box-shadow: 0 20px 40px -20px rgba(0,0,0,0.6); }
@@ -1613,17 +1603,14 @@ function App() {
           100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
         }
 
-        /* dashboard */
         .dashboard-card { box-shadow: 0 30px 80px -30px rgba(0,0,0,0.9); }
         .dash-tile { background: rgba(10, 35, 22, 0.3); border: 1px solid var(--border-glass); border-radius: 12px; padding: 12px; text-align: left; }
         .bar { flex: 1; min-width: 4px; border-radius: 3px 3px 0 0; background: linear-gradient(180deg, #10b981, rgba(5, 150, 105, 0.25));
           animation: bar-rise .7s ease backwards; }
         @keyframes bar-rise { from { transform: scaleY(0); transform-origin: bottom; } to { transform: scaleY(1); } }
 
-        /* eyebrow */
         .eyebrow { color: var(--accent-blue-bright); font-weight: 600; }
 
-        /* bento */
         .bento-card { min-height: 220px; }
         .tile-label { font-size: 11.5px; letter-spacing: 0.05em; text-transform: uppercase; }
         .lhs-range { -webkit-appearance: none; width: 100%; height: 4px; border-radius: 999px; background: var(--border-glass); outline: none; }
@@ -1652,10 +1639,8 @@ function App() {
         .chip.active { border-color: var(--accent-blue); background: rgba(16,185,129,0.18); color: #fff; box-shadow: 0 0 0 1px rgba(16,185,129,0.4); }
         .chip:not(.active):hover { border-color: var(--border-glass-hover); color: var(--text-primary); transform: translateY(-1px); }
 
-        /* pillars */
         .pillar-icon { width: 34px; height: 34px; border-radius: 999px; background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.25); display: flex; align-items: center; justify-content: center; }
 
-        /* registration */
         .segmented { display: flex; background: rgba(10, 30, 20, 0.4); border: 1px solid var(--border-glass); border-radius: 12px; padding: 4px; gap: 4px; }
         .segment { flex: 1; padding: 10px 12px; border-radius: 999px; border: none; background: transparent; color: var(--text-tertiary); font-size: 12.5px; transition: all .25s ease; }
         .segment.active { background: rgba(16,185,129,0.22); color: #fff; box-shadow: 0 0 0 1px rgba(16,185,129,0.4); }
@@ -1690,7 +1675,6 @@ function App() {
         .ticket-divider { border-top: 1px dashed var(--border-glass); }
         .ticket-check { width: 34px; height: 34px; border-radius: 999px; background: rgba(34,197,94,0.18); color: var(--green); display: flex; align-items: center; justify-content: center; }
 
-        /* footer */
         .footer-link { display: flex; padding: 6px 0; font-size: 13px; transition: color .2s, transform .2s; }
         .footer-link:hover { color: var(--text-primary); transform: translateX(2px); }
         .social-btn { width: 32px; height: 32px; border-radius: 999px; border: 1px solid var(--border-glass); background: var(--bg-card); display: flex; align-items: center; justify-content: center; color: var(--text-secondary); transition: all .25s ease; }
