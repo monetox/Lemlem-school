@@ -68,6 +68,7 @@ const {
   Linkedin = () => null,
   CreditCard = () => null,
   Receipt = () => null,
+  Loader2 = () => null,
 } = lucideObj;
 
 /* ------------------------------------------------------------------ */
@@ -755,6 +756,8 @@ function RegistrationPortal() {
   const [appId, setAppId] = useState(null);
   const [dragKey, setDragKey] = useState(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
   const [form, setForm] = useState({
     fullName: "",
     dob: "",
@@ -782,8 +785,8 @@ function RegistrationPortal() {
     return () => Object.values(timers.current).forEach(clearInterval);
   }, []);
 
-  function simulateUpload(key, name) {
-    setFiles((f) => ({ ...f, [key]: { name, progress: 0 } }));
+  function simulateUpload(key, fileObj) {
+    setFiles((f) => ({ ...f, [key]: { name: fileObj.name, rawFile: fileObj, progress: 0 } }));
     if (timers.current[key]) clearInterval(timers.current[key]);
     let p = 0;
     timers.current[key] = setInterval(() => {
@@ -792,7 +795,7 @@ function RegistrationPortal() {
         p = 100;
         clearInterval(timers.current[key]);
       }
-      setFiles((f) => ({ ...f, [key]: { name, progress: Math.round(p) } }));
+      setFiles((f) => ({ ...f, [key]: { ...f[key], progress: Math.round(p) } }));
     }, 220);
   }
 
@@ -800,12 +803,12 @@ function RegistrationPortal() {
     e.preventDefault();
     setDragKey(null);
     const file = e.dataTransfer.files && e.dataTransfer.files[0];
-    simulateUpload(key, file ? file.name : `${key}-document.pdf`);
+    if (file) simulateUpload(key, file);
   }
 
   function handleBrowse(e, key) {
     const file = e.target.files && e.target.files[0];
-    if (file) simulateUpload(key, file.name);
+    if (file) simulateUpload(key, file);
   }
 
   function validateStep(n) {
@@ -838,10 +841,65 @@ function RegistrationPortal() {
     return Object.keys(e).length === 0;
   }
 
+  async function handleSubmitApplication() {
+    if (!validateStep(4)) return;
+
+    setIsSubmitting(true);
+    setSubmitError(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("Application Type", mode === "new" ? "New Student Application" : "Returning Student Re-registration");
+      formData.append("Application ID", appId || genAppId());
+      formData.append("Student Name", form.fullName);
+      formData.append("Date of Birth", form.dob);
+      formData.append("Grade", form.grade);
+      if (mode === "new") {
+        formData.append("Previous School", form.previousSchool);
+      } else {
+        formData.append("Student ID", form.studentId);
+      }
+      formData.append("Guardian Name", form.guardianName);
+      formData.append("Relationship", form.relationship);
+      formData.append("Phone Number", form.phone);
+      formData.append("Email", form.email);
+      formData.append("Home Address", form.address);
+
+      // Append files if available
+      if (files["transcript"]?.rawFile) formData.append("transcript", files["transcript"].rawFile);
+      if (files["id"]?.rawFile) formData.append("id_document", files["id"].rawFile);
+      if (files["photo"]?.rawFile) formData.append("passport_photo", files["photo"].rawFile);
+      if (files["receipt"]?.rawFile) formData.append("payment_receipt", files["receipt"].rawFile);
+
+      const response = await fetch("https://formspree.io/f/xpqvbbee", {
+        method: "POST",
+        body: formData,
+        headers: {
+          Accept: "application/json",
+        },
+      });
+
+      if (response.ok) {
+        setIsSubmitted(true);
+      } else {
+        const data = await response.json();
+        if (data && data.errors) {
+          setSubmitError(data.errors.map(err => err.message).join(", "));
+        } else {
+          setSubmitError("Failed to submit application. Please try again.");
+        }
+      }
+    } catch (err) {
+      setSubmitError("Network error. Please check your connection and try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
   function next() {
     if (validateStep(step)) {
       if (step === 4) {
-        setIsSubmitted(true);
+        handleSubmitApplication();
       } else {
         setStep((s) => Math.min(s + 1, 4));
       }
@@ -849,12 +907,15 @@ function RegistrationPortal() {
   }
   function back() {
     setErrors({});
+    setSubmitError(null);
     setStep((s) => Math.max(s - 1, 1));
   }
   function restart() {
     setStep(1);
     setAppId(null);
     setIsSubmitted(false);
+    setIsSubmitting(false);
+    setSubmitError(null);
     setErrors({});
     setFiles({});
     setForm({
@@ -1156,6 +1217,11 @@ function RegistrationPortal() {
                       </span>
                     )}
                   </div>
+                  {submitError && (
+                    <span className="flex items-center error-text animate-fade-in" style={{ gap: "5px", marginTop: "12px", fontSize: "13px" }}>
+                      <X size={14} /> {submitError}
+                    </span>
+                  )}
                 </div>
               )}
 
@@ -1213,7 +1279,7 @@ function RegistrationPortal() {
 
             <div className="flex items-center justify-between" style={{ marginTop: "26px" }}>
               {step > 1 && !isSubmitted ? (
-                <button onClick={back} className="btn-glass flex items-center" style={{ padding: "10px 16px", gap: "6px", fontSize: "13.5px" }}>
+                <button onClick={back} disabled={isSubmitting} className="btn-glass flex items-center" style={{ padding: "10px 16px", gap: "6px", fontSize: "13.5px" }}>
                   <ChevronLeft size={15} /> Back
                 </button>
               ) : (
@@ -1226,8 +1292,16 @@ function RegistrationPortal() {
                 </button>
               )}
               {step === 4 && !isSubmitted && (
-                <button onClick={next} className="btn-primary flex items-center" style={{ padding: "10px 18px", gap: "6px", fontSize: "13.5px" }}>
-                  Submit application &amp; receipt <ChevronRight size={15} />
+                <button onClick={next} disabled={isSubmitting} className="btn-primary flex items-center" style={{ padding: "10px 18px", gap: "6px", fontSize: "13.5px", opacity: isSubmitting ? 0.7 : 1 }}>
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 size={16} className="animate-spin" /> Submitting...
+                    </>
+                  ) : (
+                    <>
+                      Submit application &amp; receipt <ChevronRight size={15} />
+                    </>
+                  )}
                 </button>
               )}
               {isSubmitted && (
