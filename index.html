@@ -6,17 +6,13 @@
 <title>Lemlem High School — 30 Years of Excellence</title>
 <meta name="description" content="Lemlem High School, Addis Ababa — 30 years of excellence in education. Explore academics, our 30th anniversary legacy, and apply for the 2026/27 academic year." />
 
-<!-- Tailwind CSS -->
 <script src="https://cdn.tailwindcss.com"></script>
 
-<!-- Babel Standalone -->
 <script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"></script>
 
-<!-- React 18 & ReactDOM UMD -->
 <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
 
-<!-- Lucide React UMD -->
 <script src="https://unpkg.com/lucide-react@0.263.1/dist/umd/lucide-react.min.js" crossorigin></script>
 
 <style>
@@ -72,7 +68,7 @@ const Receipt = safeIcon(lucideObj.Receipt);
 const Loader2 = safeIcon(lucideObj.Loader2);
 
 /* ------------------------------------------------------------------ */
-/*  Animation Utilities & Components                                  */
+/* Animation Utilities & Components                                  */
 /* ------------------------------------------------------------------ */
 
 function Reveal({ children, className = "", delay = 0, style = {}, direction = "up" }) {
@@ -110,7 +106,7 @@ function Reveal({ children, className = "", delay = 0, style = {}, direction = "
 }
 
 /* ------------------------------------------------------------------ */
-/*  Mock data                                                          */
+/* Mock data                                                          */
 /* ------------------------------------------------------------------ */
 
 const NAV_LINKS = [
@@ -190,7 +186,7 @@ const PILLARS = [
   {
     icon: Award,
     title: "National exam excellence",
-    desc: "Structured EGSECE preparation backed by a 30-year record of top regional results.",
+    desc: " Structured EGSECE preparation backed by a 30-year record of top regional results.",
   },
   {
     icon: BookOpen,
@@ -223,7 +219,7 @@ const DOCS = [
 ];
 
 /* ------------------------------------------------------------------ */
-/*  Small utilities                                                    */
+/* Small utilities                                                    */
 /* ------------------------------------------------------------------ */
 
 function useCountUp(target, duration = 1400, start = true) {
@@ -263,7 +259,7 @@ function genAppId() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Shared bits                                                        */
+/* Shared bits                                                        */
 /* ------------------------------------------------------------------ */
 
 function Kbd({ children }) {
@@ -288,7 +284,7 @@ function SpotlightCard({ className = "", children, style = {}, as: As = "div", .
 }
 
 /* ------------------------------------------------------------------ */
-/*  Header                                                             */
+/* Header                                                             */
 /* ------------------------------------------------------------------ */
 
 function Header() {
@@ -353,7 +349,7 @@ function Header() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Hero — Centered Text Layout                                         */
+/* Hero — Centered Text Layout                                         */
 /* ------------------------------------------------------------------ */
 
 function StatTile({ stat }) {
@@ -489,7 +485,7 @@ function Hero() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Bento — 30th anniversary showcase                                  */
+/* Bento — 30th anniversary showcase                                  */
 /* ------------------------------------------------------------------ */
 
 function TimelineCard() {
@@ -665,7 +661,7 @@ function BentoShowcase() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Features grid                                                      */
+/* Features grid                                                      */
 /* ------------------------------------------------------------------ */
 
 function FeaturesGrid() {
@@ -705,7 +701,7 @@ function FeaturesGrid() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Registration portal                                                */
+/* Registration portal                                                */
 /* ------------------------------------------------------------------ */
 
 const STEP_LABELS = ["Student & grade", "Guardian details", "Documents", "Payment & Fee"];
@@ -750,6 +746,7 @@ function Field({ label, error, children }) {
 
 function RegistrationPortal() {
   const [mode, setMode] = useState("new");
+  const [paymentPlan, setPaymentPlan] = useState("monthly"); // Option: 'monthly' or 'annual'
   const [step, setStep] = useState(1);
   const [errors, setErrors] = useState({});
   const [appId, setAppId] = useState(null);
@@ -832,8 +829,9 @@ function RegistrationPortal() {
       });
     }
     if (n === 4) {
+      const requiredAmt = paymentPlan === "monthly" ? "1,850 ETB" : "5,340 ETB";
       if (!files["receipt"] || files["receipt"].progress < 100) {
-        e.receipt = "Please upload the bank deposit or transfer receipt of 5,340 ETB.";
+        e.receipt = `Please upload the bank deposit or transfer receipt of ${requiredAmt}.`;
       }
     }
     setErrors(e);
@@ -850,6 +848,7 @@ function RegistrationPortal() {
       const formData = new FormData();
       formData.append("Application Type", mode === "new" ? "New Student Application" : "Returning Student Re-registration");
       formData.append("Application ID", appId || genAppId());
+      formData.append("Payment Plan Chosen", paymentPlan === "monthly" ? "Monthly (1,850 ETB/mo)" : "Annual Deposit (5,340 ETB)");
       formData.append("Student Name", form.fullName);
       formData.append("Date of Birth", form.dob);
       formData.append("Grade", form.grade);
@@ -946,7 +945,7 @@ function RegistrationPortal() {
               students follow the same clean flow.
             </p>
             <div style={{ marginTop: "24px" }}>
-              {["Reviewed within 3 business days", "SMS + email confirmation", "No paper forms required"].map((t) => (
+              {["Reviewed within 3 business days", "Flexible monthly or annual payment", "SMS + email confirmation", "No paper forms required"].map((t) => (
                 <div key={t} className="flex items-center text-tertiary" style={{ gap: "8px", fontSize: "13px", marginBottom: "10px" }}>
                   <ShieldCheck size={14} className="text-accent" />
                   {t}
@@ -1140,6 +1139,46 @@ function RegistrationPortal() {
 
               {step === 4 && !isSubmitted && (
                 <div>
+                  {/* Payment Plan Selector */}
+                  <span className="text-secondary" style={{ fontSize: "13px", display: "block", marginBottom: "8px" }}>
+                    Select Tuition Payment Option
+                  </span>
+                  <div className="grid sm:grid-cols-2" style={{ gap: "10px", marginBottom: "18px" }}>
+                    <div
+                      onClick={() => setPaymentPlan("monthly")}
+                      className={`glass cursor-pointer transition-all duration-200`}
+                      style={{
+                        padding: "14px",
+                        borderRadius: "12px",
+                        border: paymentPlan === "monthly" ? "1px solid var(--accent-blue-bright)" : "1px solid var(--border-glass)",
+                        background: paymentPlan === "monthly" ? "rgba(16, 185, 129, 0.12)" : "rgba(10, 30, 20, 0.3)",
+                      }}
+                    >
+                      <div className="flex items-center justify-between" style={{ marginBottom: "4px" }}>
+                        <span className="text-primary" style={{ fontSize: "14px", fontWeight: 600 }}>Monthly Plan</span>
+                        <span className="lhs-mono text-accent" style={{ fontSize: "14px", fontWeight: 700 }}>1,850 ETB</span>
+                      </div>
+                      <div className="text-tertiary" style={{ fontSize: "11.5px" }}>Payable on the 1st of each month</div>
+                    </div>
+
+                    <div
+                      onClick={() => setPaymentPlan("annual")}
+                      className={`glass cursor-pointer transition-all duration-200`}
+                      style={{
+                        padding: "14px",
+                        borderRadius: "12px",
+                        border: paymentPlan === "annual" ? "1px solid var(--accent-blue-bright)" : "1px solid var(--border-glass)",
+                        background: paymentPlan === "annual" ? "rgba(16, 185, 129, 0.12)" : "rgba(10, 30, 20, 0.3)",
+                      }}
+                    >
+                      <div className="flex items-center justify-between" style={{ marginBottom: "4px" }}>
+                        <span className="text-primary" style={{ fontSize: "14px", fontWeight: 600 }}>Annual Deposit</span>
+                        <span className="lhs-mono text-accent" style={{ fontSize: "14px", fontWeight: 700 }}>5,340 ETB</span>
+                      </div>
+                      <div className="text-tertiary" style={{ fontSize: "11.5px" }}>Full academic term payment</div>
+                    </div>
+                  </div>
+
                   <div className="glass" style={{ borderRadius: "12px", padding: "18px", marginBottom: "20px", border: "1px solid var(--border-glass-hover)" }}>
                     <div className="flex items-center justify-between" style={{ marginBottom: "12px" }}>
                       <div className="flex items-center" style={{ gap: "10px" }}>
@@ -1148,20 +1187,20 @@ function RegistrationPortal() {
                         </span>
                         <div>
                           <div className="text-primary" style={{ fontSize: "15px", fontWeight: 600 }}>
-                            Registration Fee Requirement
+                            {paymentPlan === "monthly" ? "1st Month Tuition Payment" : "Annual Tuition Deposit"}
                           </div>
                           <div className="text-tertiary" style={{ fontSize: "12px" }}>
-                            Academic Year 2026/27 Tuition Deposit
+                            Academic Year 2026/27
                           </div>
                         </div>
                       </div>
                       <div className="lhs-mono gradient-text" style={{ fontSize: "20px", fontWeight: 700 }}>
-                        5,340 ETB
+                        {paymentPlan === "monthly" ? "1,850 ETB" : "5,340 ETB"}
                       </div>
                     </div>
 
                     <div style={{ fontSize: "13px", lineHeight: 1.6, color: "var(--text-secondary)", borderTop: "1px dashed var(--border-glass)", paddingTop: "12px" }}>
-                      Please deposit or transfer <strong className="text-primary">5,340 Birr</strong> to the school bank account below and upload your transaction receipt:
+                      Please deposit or transfer <strong className="text-primary">{paymentPlan === "monthly" ? "1,850 Birr" : "5,340 Birr"}</strong> to the school bank account below and upload your transaction receipt:
                       <div className="grid sm:grid-cols-2 lhs-mono text-xs" style={{ gap: "8px", marginTop: "10px", background: "rgba(2, 6, 4, 0.5)", padding: "10px", borderRadius: "8px" }}>
                         <div><span className="text-tertiary">Bank:</span> Commercial Bank of Ethiopia</div>
                         <div><span className="text-tertiary">Account Name:</span> Lemlem High School</div>
@@ -1194,7 +1233,7 @@ function RegistrationPortal() {
                             Bank Receipt / Transfer Confirmation
                           </div>
                           <div className="text-tertiary" style={{ fontSize: "12px" }}>
-                            {files["receipt"] ? files["receipt"].name : "PNG, JPG, or PDF (Receipt showing 5,340 ETB)"}
+                            {files["receipt"] ? files["receipt"].name : `PNG, JPG, or PDF (Receipt showing ${paymentPlan === "monthly" ? "1,850 ETB" : "5,340 ETB"})`}
                           </div>
                         </div>
                       </div>
@@ -1253,7 +1292,7 @@ function RegistrationPortal() {
                       ["Track", mode === "new" ? "New student" : "Returning student"],
                       ["Guardian", form.guardianName || "—"],
                       ["Phone", form.phone || "—"],
-                      ["Registration Fee", "5,340 ETB (Attached)"],
+                      ["Tuition Option", paymentPlan === "monthly" ? "Monthly (1,850 ETB/mo)" : "Annual (5,340 ETB)"],
                     ].map(([label, val]) => (
                       <div key={label}>
                         <div className="text-tertiary" style={{ fontSize: "11.5px", marginBottom: "3px" }}>
@@ -1316,7 +1355,7 @@ function RegistrationPortal() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Footer                                                              */
+/* Footer                                                              */
 /* ------------------------------------------------------------------ */
 
 function Footer() {
@@ -1392,7 +1431,7 @@ function Footer() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  App                                                                 */
+/* App                                                                 */
 /* ------------------------------------------------------------------ */
 
 function App() {
