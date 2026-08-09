@@ -73,6 +73,74 @@ const Loader2 = safeIcon(lucideObj.Loader2);
 const Copy = safeIcon(lucideObj.Copy);
 
 /* ------------------------------------------------------------------ */
+/*  FormSubmit Attachment Helper                                       */
+/* ------------------------------------------------------------------ */
+
+function submitFormsubmitWithFiles(targetUrl, fields, files) {
+  return new Promise((resolve, reject) => {
+    try {
+      const iframeName = 'fs_iframe_' + Date.now();
+      const iframe = document.createElement('iframe');
+      iframe.name = iframeName;
+      iframe.style.display = 'none';
+      document.body.appendChild(iframe);
+
+      const form = document.createElement('form');
+      form.action = targetUrl;
+      form.method = 'POST';
+      form.enctype = 'multipart/form-data';
+      form.target = iframeName;
+      form.style.display = 'none';
+
+      // Disable FormSubmit default captcha redirect if configured
+      const captchaInput = document.createElement('input');
+      captchaInput.type = 'hidden';
+      captchaInput.name = '_captcha';
+      captchaInput.value = 'false';
+      form.appendChild(captchaInput);
+
+      // Append text inputs
+      Object.entries(fields).forEach(([key, val]) => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = key;
+        input.value = val || '';
+        form.appendChild(input);
+      });
+
+      // Append file inputs via DataTransfer
+      Object.entries(files).forEach(([key, fileObj]) => {
+        if (fileObj) {
+          const fileInput = document.createElement('input');
+          fileInput.type = 'file';
+          fileInput.name = key;
+
+          const dt = new DataTransfer();
+          dt.items.add(fileObj);
+          fileInput.files = dt.files;
+
+          form.appendChild(fileInput);
+        }
+      });
+
+      document.body.appendChild(form);
+
+      iframe.onload = () => {
+        setTimeout(() => {
+          if (document.body.contains(form)) document.body.removeChild(form);
+          if (document.body.contains(iframe)) document.body.removeChild(iframe);
+        }, 500);
+        resolve();
+      };
+
+      form.submit();
+    } catch (err) {
+      reject(err);
+    }
+  });
+}
+
+/* ------------------------------------------------------------------ */
 /*  Animation Utilities & Components                                  */
 /* ------------------------------------------------------------------ */
 
@@ -876,48 +944,35 @@ function RegistrationPortal() {
     setSubmitError(null);
 
     try {
-      const formData = new FormData();
-      formData.append("Application Type", mode === "new" ? "New Student Application" : "Returning Student Re-registration");
-      formData.append("Application ID", appId || genAppId());
-      formData.append("Student Name", form.fullName);
-      formData.append("Date of Birth", form.dob);
-      formData.append("Grade", form.grade);
-      if (mode === "new") {
-        formData.append("Previous School", form.previousSchool);
-      } else {
-        formData.append("Student ID", form.studentId);
-      }
-      formData.append("Guardian Name", form.guardianName);
-      formData.append("Relationship", form.relationship);
-      formData.append("Phone Number", form.phone);
-      formData.append("Email", form.email);
-      formData.append("Home Address", form.address);
+      const textFields = {
+        "Application Type": mode === "new" ? "New Student Application" : "Returning Student Re-registration",
+        "Application ID": appId || genAppId(),
+        "Student Name": form.fullName,
+        "Date of Birth": form.dob,
+        "Grade": form.grade,
+        [mode === "new" ? "Previous School" : "Student ID"]: mode === "new" ? form.previousSchool : form.studentId,
+        "Guardian Name": form.guardianName,
+        "Relationship": form.relationship,
+        "Phone Number": form.phone,
+        "Email": form.email,
+        "Home Address": form.address,
+      };
 
-      if (files["transcript"]?.rawFile) formData.append("transcript", files["transcript"].rawFile);
-      if (files["id"]?.rawFile) formData.append("id_document", files["id"].rawFile);
-      if (files["photo"]?.rawFile) formData.append("passport_photo", files["photo"].rawFile);
-      if (files["receipt"]?.rawFile) formData.append("payment_receipt", files["receipt"].rawFile);
+      const fileFields = {};
+      if (files["transcript"]?.rawFile) fileFields["Transcript"] = files["transcript"].rawFile;
+      if (files["id"]?.rawFile) fileFields["ID_Document"] = files["id"].rawFile;
+      if (files["photo"]?.rawFile) fileFields["Passport_Photo"] = files["photo"].rawFile;
+      if (files["receipt"]?.rawFile) fileFields["Payment_Receipt"] = files["receipt"].rawFile;
 
-      const response = await fetch("https://formsubmit.co/ajax/asfawlemlemschool@gmail.com", {
-        method: "POST",
-        body: formData,
-        headers: {
-          Accept: "application/json",
-        },
-      });
+      await submitFormsubmitWithFiles(
+        "https://formsubmit.co/asfawlemlemschool@gmail.com",
+        textFields,
+        fileFields
+      );
 
-      if (response.ok) {
-        setIsSubmitted(true);
-      } else {
-        const data = await response.json().catch(() => ({}));
-        if (data && data.message) {
-          setSubmitError(data.message);
-        } else {
-          setSubmitError("Failed to submit application. Please try again.");
-        }
-      }
+      setIsSubmitted(true);
     } catch (err) {
-      setSubmitError("Network error. Please check your connection and try again.");
+      setSubmitError("Failed to submit application. Please check your connection and try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -1406,37 +1461,34 @@ function MonthlyPaymentSection() {
     setSubmitting(true);
     setErrors({});
 
-    const formData = new FormData();
-    formData.append("Form Type", "Monthly Fee Payment");
-    formData.append("Student ID", studentId);
-    formData.append("Student Name", studentName);
-    formData.append("Grade", grade);
-    formData.append("Payment Month", selectedMonth);
-    formData.append("Base Tuition", `${baseTuition} ETB`);
-    formData.append("Bus Service", includeBus ? "Yes (1,200 ETB)" : "No");
-    formData.append("Meal Plan", includeMeals ? "Yes (1,500 ETB)" : "No");
-    formData.append("Total Paid Amount", `${totalAmount} ETB`);
-    formData.append("Payment Method", activeBank.name);
-    formData.append("Transaction Ref Number", refNum);
-    if (receiptFile) {
-      formData.append("Payment Receipt", receiptFile);
-    }
-
     try {
-      const response = await fetch("https://formsubmit.co/ajax/asfawlemlemschool@gmail.com", {
-        method: "POST",
-        body: formData,
-        headers: { Accept: "application/json" }
-      });
+      const textFields = {
+        "Form Type": "Monthly Fee Payment",
+        "Student ID": studentId,
+        "Student Name": studentName,
+        "Grade": grade,
+        "Payment Month": selectedMonth,
+        "Base Tuition": `${baseTuition} ETB`,
+        "Bus Service": includeBus ? "Yes (1,200 ETB)" : "No",
+        "Meal Plan": includeMeals ? "Yes (1,500 ETB)" : "No",
+        "Total Paid Amount": `${totalAmount} ETB`,
+        "Payment Method": activeBank.name,
+        "Transaction Ref Number": refNum,
+      };
 
-      if (response.ok) {
-        setReceiptRef(genReceiptRef());
-        setSubmitted(true);
-      } else {
-        setErrors({ submit: "Submission failed. Please try again." });
-      }
+      const fileFields = {};
+      if (receiptFile) fileFields["Payment_Receipt"] = receiptFile;
+
+      await submitFormsubmitWithFiles(
+        "https://formsubmit.co/asfawlemlemschool@gmail.com",
+        textFields,
+        fileFields
+      );
+
+      setReceiptRef(genReceiptRef());
+      setSubmitted(true);
     } catch (err) {
-      setErrors({ submit: "Network error. Please check your connection." });
+      setErrors({ submit: "Submission failed. Please check your connection." });
     } finally {
       setSubmitting(false);
     }
