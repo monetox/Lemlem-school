@@ -37,6 +37,8 @@
 <script type="text/babel" data-presets="react">
 const { useState, useEffect, useRef, useCallback, Fragment } = React;
 
+const LOGO_URL = "https://raw.githubusercontent.com/monetox/Lemlem-school/111e78ac1c67c28734e125a37f785ec775a20745/IMG_20260818_230020_383.jpg";
+
 // Safely pull icons from LucideReact global object with fallback
 const lucideObj = window.LucideReact?.icons || window.LucideReact || {};
 const safeIcon = (iconComp) => (typeof iconComp === 'function' ? iconComp : () => null);
@@ -407,9 +409,11 @@ function Header() {
     <header className={`nav-shell fixed top-0 left-0 right-0 z-50 ${scrolled ? "nav-scrolled" : ""}`}>
       <div className="max-w-7xl mx-auto flex items-center justify-between" style={{ height: "64px", padding: "0 20px" }}>
         <a href="#top" className="flex items-center group" style={{ gap: "10px" }}>
-          <span className="logo-mark lhs-mono group-hover:scale-105 transition-transform duration-300">
-            <GraduationCap size={16} />
-          </span>
+          <img 
+            src={LOGO_URL} 
+            alt="Lemlem High School Logo" 
+            className="w-8 h-8 rounded-lg object-cover border border-emerald-500/30 group-hover:scale-105 transition-transform duration-300"
+          />
           <span className="text-primary font-semibold text-[14.5px] tracking-tight">
             Lemlem High School
           </span>
@@ -1884,9 +1888,11 @@ function Footer() {
           <div className="grid md:grid-cols-4" style={{ gap: "32px", marginBottom: "40px" }}>
             <div style={{ gridColumn: "span 2" }}>
               <div className="flex items-center" style={{ gap: "10px", marginBottom: "14px" }}>
-                <span className="logo-mark lhs-mono">
-                  <GraduationCap size={16} />
-                </span>
+                <img 
+                  src={LOGO_URL} 
+                  alt="Lemlem High School Logo" 
+                  className="w-8 h-8 rounded-lg object-cover border border-emerald-500/30"
+                />
                 <span className="text-primary" style={{ fontWeight: 600, fontSize: "14.5px" }}>
                   Lemlem High School
                 </span>
@@ -2280,3 +2286,4 @@ root.render(<App />);
 
 </body>
 </html>
+
