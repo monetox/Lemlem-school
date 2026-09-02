@@ -43,7 +43,7 @@ const { useState, useEffect, useRef, useCallback, Fragment } = React;
 /* ------------------------------------------------------------------ */
 /*  Supabase Initialization & Helper                                  */
 /* ------------------------------------------------------------------ */
-const supabase = supabase.createClient(
+const supabaseClient = window.supabase.createClient(
   'https://qfxywxmlhakgjmdgxdsx.supabase.co',
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh3YmtxaHR3b2Vqa2FrdGFxdXpxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzNDkzMTksImV4cCI6MjEwMzkyNTMxOX0.532JrCZXpKW2CwC84OAEK5TXjqLSRRPaA7-7O4CDcVA'
 );
@@ -53,7 +53,7 @@ async function handleFileUpload(file) {
   const filePath = `uploads/${Date.now()}_${file.name}`;
 
   // 1. Upload file to Supabase Storage
-  const { data, error } = await supabase.storage
+  const { data, error } = await supabaseClient.storage
     .from('receipts') // Replace with your bucket name
     .upload(filePath, file);
 
@@ -63,7 +63,7 @@ async function handleFileUpload(file) {
   }
 
   // 2. Get the public URL to save with your form submission
-  const { data: urlData } = supabase.storage
+  const { data: urlData } = supabaseClient.storage
     .from('receipts')
     .getPublicUrl(filePath);
 
@@ -954,7 +954,7 @@ function RegistrationPortal() {
         receipt: files["receipt"]?.url || null,
       };
 
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from('applications')
         .insert([
           {
@@ -1478,7 +1478,7 @@ function MonthlyPaymentSection() {
     const generatedRef = genReceiptRef();
 
     try {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from('monthly_payments')
         .insert([
           {
