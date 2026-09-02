@@ -46,13 +46,13 @@ const { useState, useEffect, useRef, useCallback, Fragment } = React;
 /*  Firebase Initialization                                           */
 /* ------------------------------------------------------------------ */
 const firebaseConfig = {
-  apiKey: "AIzaSyD1rEj-Ij6VqdJb1etQ3Xoza5C4VQSwXuU",
-  authDomain: "lemlem-school-f1899.firebaseapp.com",
-  projectId: "lemlem-school-f1899",
-  storageBucket: "lemlem-school-f1899.firebasestorage.app",
-  messagingSenderId: "151603270631",
-  appId: "1:151603270631:web:9822035f1c12b97761e342",
-  measurementId: "G-9VTM2WBJMC"
+  apiKey: "AIzaSyBp8SMsQV0Hcq6zeI_rsKXvknVOo5asaxE",
+  authDomain: "lemlemschool-52765.firebaseapp.com",
+  projectId: "lemlemschool-52765",
+  storageBucket: "lemlemschool-52765.firebasestorage.app",
+  messagingSenderId: "527183620799",
+  appId: "1:527183620799:web:667d6595838545fe28f40a",
+  measurementId: "G-LTR6RV64MR"
 };
 
 // Initialize Firebase App & Services
@@ -104,71 +104,6 @@ const Code2 = safeIcon(lucideObj.Code2);
 const Heart = safeIcon(lucideObj.Heart);
 const Building = safeIcon(lucideObj.Building);
 const Send = safeIcon(lucideObj.Send);
-
-/* ------------------------------------------------------------------ */
-/*  FormSubmit Attachment Helper (Fallback)                           */
-/* ------------------------------------------------------------------ */
-
-function submitFormsubmitWithFiles(targetUrl, fields, files) {
-  return new Promise((resolve, reject) => {
-    try {
-      const iframeName = 'fs_iframe_' + Date.now();
-      const iframe = document.createElement('iframe');
-      iframe.name = iframeName;
-      iframe.style.display = 'none';
-      document.body.appendChild(iframe);
-
-      const form = document.createElement('form');
-      form.action = targetUrl;
-      form.method = 'POST';
-      form.enctype = 'multipart/form-data';
-      form.target = iframeName;
-      form.style.display = 'none';
-
-      const captchaInput = document.createElement('input');
-      captchaInput.type = 'hidden';
-      captchaInput.name = '_captcha';
-      captchaInput.value = 'false';
-      form.appendChild(captchaInput);
-
-      Object.entries(fields).forEach(([key, val]) => {
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = key;
-        input.value = val || '';
-        form.appendChild(input);
-      });
-
-      Object.entries(files).forEach(([key, fileObj]) => {
-        if (fileObj) {
-          const fileInput = document.createElement('input');
-          fileInput.type = 'file';
-          fileInput.name = key;
-
-          const dt = new DataTransfer();
-          dt.items.add(fileObj);
-          fileInput.files = dt.files;
-
-          form.appendChild(fileInput);
-        }
-      });
-
-      document.body.appendChild(form);
-
-      iframe.onload = () => {
-        setTimeout(() => {
-          if (document.body.contains(form)) document.body.removeChild(form);
-          if (document.body.contains(iframe)) document.body.removeChild(iframe);
-        }, 500);
-        resolve();
-      };
-
-      form.submit();
-    } catch (err) {
-      reject(err);
-    }
-  });
-}
 
 /* ------------------------------------------------------------------ */
 /*  Animation Utilities & Components                                  */
@@ -1048,33 +983,6 @@ function RegistrationPortal() {
         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
       });
 
-      // Also trigger email fallback for resilience
-      const textFields = {
-        "Application Type": mode === "new" ? "New Student Application" : "Returning Student Re-registration",
-        "Application ID": generatedId,
-        "Student Name": form.fullName,
-        "Date of Birth": form.dob,
-        "Grade": form.grade,
-        [mode === "new" ? "Previous School" : "Student ID"]: mode === "new" ? form.previousSchool : form.studentId,
-        "Guardian Name": form.guardianName,
-        "Relationship": form.relationship,
-        "Phone Number": form.phone,
-        "Email": form.email,
-        "Home Address": form.address,
-      };
-
-      const fileFields = {};
-      if (files["transcript"]?.rawFile) fileFields["Transcript"] = files["transcript"].rawFile;
-      if (files["id"]?.rawFile) fileFields["ID_Document"] = files["id"].rawFile;
-      if (files["photo"]?.rawFile) fileFields["Passport_Photo"] = files["photo"].rawFile;
-      if (files["receipt"]?.rawFile) fileFields["Payment_Receipt"] = files["receipt"].rawFile;
-
-      submitFormsubmitWithFiles(
-        "https://formsubmit.co/asfawlemlemschool@gmail.com",
-        textFields,
-        fileFields
-      ).catch(() => {});
-
       setIsSubmitted(true);
     } catch (err) {
       console.error("Firestore submission error:", err);
@@ -1604,30 +1512,6 @@ function MonthlyPaymentSection() {
         status: "Pending Verification",
         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
       });
-
-      // Submit via FormSubmit fallback
-      const textFields = {
-        "Form Type": "Monthly Fee Payment",
-        "Student ID": studentId,
-        "Student Name": studentName,
-        "Grade": grade,
-        "Payment Month": selectedMonth,
-        "Base Tuition": `${baseTuition} ETB`,
-        "Bus Service": includeBus ? "Yes (1,200 ETB)" : "No",
-        "Meal Plan": includeMeals ? "Yes (1,500 ETB)" : "No",
-        "Total Paid Amount": `${totalAmount} ETB`,
-        "Payment Method": activeBank.name,
-        "Transaction Ref Number": refNum,
-      };
-
-      const fileFields = {};
-      if (receiptFile) fileFields["Payment_Receipt"] = receiptFile;
-
-      submitFormsubmitWithFiles(
-        "https://formsubmit.co/asfawlemlemschool@gmail.com",
-        textFields,
-        fileFields
-      ).catch(() => {});
 
       setReceiptRef(generatedRef);
       setSubmitted(true);
@@ -2280,106 +2164,114 @@ function App() {
         @keyframes bar-rise { from { transform: scaleY(0); transform-origin: bottom; } to { transform: scaleY(1); } }
 
         .eyebrow { color: var(--accent-blue-bright); font-weight: 600; }
-
-        .bento-card { min-height: 220px; }
-        .tile-label { font-size: 11.5px; letter-spacing: 0.05em; text-transform: uppercase; }
-        .lhs-range { -webkit-appearance: none; width: 100%; height: 4px; border-radius: 999px; background: var(--border-glass); outline: none; }
-        .lhs-range::-webkit-slider-thumb {
-          -webkit-appearance: none; width: 15px; height: 15px; border-radius: 999px;
-          background: var(--accent-blue-bright); border: 2px solid #fff; box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.25); cursor: pointer;
-          transition: transform .2s;
+        .bento-card { background: var(--bg-card); border: 1px solid var(--border-glass); }
+        
+        .lhs-range {
+          width: 100%; height: 4px; border-radius: 2px; outline: none; accent-color: var(--accent-blue-bright);
+          background: rgba(16, 185, 129, 0.15);
         }
-        .lhs-range::-webkit-slider-thumb:hover { transform: scale(1.15); }
-        .year-dot { background: none; border: none; color: var(--text-tertiary); font-size: 10.5px; padding: 4px 2px; transition: color .2s, transform .2s; }
-        .year-dot:hover { transform: translateY(-1px); color: var(--text-primary); }
+        .year-dot {
+          background: none; border: none; color: var(--text-tertiary); font-size: 11px; cursor: pointer; padding: 2px 4px;
+          transition: color .2s;
+        }
         .year-dot.active { color: var(--accent-blue-bright); font-weight: 600; }
 
-        .bar-track { height: 5px; border-radius: 999px; background: rgba(16, 185, 129, 0.1); overflow: hidden; }
-        .bar-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #022c18, #10b981); transition: width .8s cubic-bezier(0.16, 1, 0.3, 1); }
+        .bar-track { height: 5px; width: 100%; background: rgba(16, 185, 129, 0.1); border-radius: 999px; overflow: hidden; }
+        .bar-fill { height: 100%; background: linear-gradient(90deg, #059669, #10b981); border-radius: 999px; }
 
-        .code-block { background: #020b06; border: 1px solid var(--border-glass); border-radius: 12px; overflow: hidden; text-align: left; }
-        .code-titlebar { display: flex; align-items: center; gap: 6px; padding: 10px 12px; border-bottom: 1px solid var(--border-glass); background: rgba(16, 185, 129, 0.02); }
-        .code-dot { width: 8px; height: 8px; border-radius: 999px; display: inline-block; }
-        .code-pre { padding: 16px; font-size: 12.5px; line-height: 1.7; color: var(--text-secondary); white-space: pre-wrap; margin: 0; }
-        .tok-str { color: #E8B34C; }
-        .tok-num { color: #7FD1E0; }
-        .tok-key { color: var(--accent-blue-bright); }
+        .chip {
+          padding: 6px 12px; border-radius: 8px; font-size: 12px; background: rgba(10, 35, 22, 0.4);
+          border: 1px solid var(--border-glass); color: var(--text-secondary); transition: all .2s;
+        }
+        .chip.active, .chip:hover { background: rgba(16, 185, 129, 0.18); border-color: var(--accent-blue-bright); color: var(--text-primary); }
 
-        .chip { border-radius: 8px; border: 1px solid var(--border-glass); background: rgba(10, 30, 20, 0.3); padding: 7px 12px; font-size: 12px; color: var(--text-secondary); transition: all .25s ease; }
-        .chip.active { border-color: var(--accent-blue); background: rgba(16,185,129,0.18); color: #fff; box-shadow: 0 0 0 1px rgba(16,185,129,0.4); }
-        .chip:not(.active):hover { border-color: var(--border-glass-hover); color: var(--text-primary); transform: translateY(-1px); }
+        .code-block {
+          background: #020a05; border: 1px solid var(--border-glass); border-radius: 12px; padding: 14px; overflow: hidden;
+        }
+        .code-titlebar { display: flex; align-items: center; gap: 6px; margin-bottom: 12px; }
+        .code-dot { width: 9px; height: 9px; border-radius: 999px; display: inline-block; }
+        .code-pre { margin: 0; font-size: 12.5px; line-height: 1.55; color: #a7f3d0; overflow-x: auto; }
+        .tok-str { color: #34d399; }
+        .tok-num { color: #f59e0b; }
+        .tok-key { color: #60a5fa; }
 
-        .pillar-icon { width: 34px; height: 34px; border-radius: 999px; background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.25); display: flex; align-items: center; justify-content: center; }
+        .pillar-card { background: var(--bg-card); border: 1px solid var(--border-glass); }
+        .pillar-icon {
+          width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center;
+          background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.25);
+        }
 
-        .segmented { display: flex; background: rgba(10, 30, 20, 0.4); border: 1px solid var(--border-glass); border-radius: 12px; padding: 4px; gap: 4px; }
-        .segment { flex: 1; padding: 10px 12px; border-radius: 999px; border: none; background: transparent; color: var(--text-tertiary); font-size: 12.5px; transition: all .25s ease; }
-        .segment.active { background: rgba(16,185,129,0.22); color: #fff; box-shadow: 0 0 0 1px rgba(16,185,129,0.4); }
+        .segmented { display: flex; background: rgba(2, 10, 5, 0.6); padding: 4px; border-radius: 12px; border: 1px solid var(--border-glass); }
+        .segment { flex: 1; padding: 8px 12px; border-radius: 8px; border: none; background: transparent; color: var(--text-secondary); font-size: 12.5px; transition: all .2s; }
+        .segment.active { background: rgba(16, 185, 129, 0.18); color: var(--text-primary); border: 1px solid var(--border-glass-hover); }
 
-        .step-dot { width: 24px; height: 24px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; border: 1px solid var(--border-glass); color: var(--text-tertiary); flex-shrink: 0; transition: all .3s ease; }
-        .step-dot.active { border-color: var(--accent-blue-bright); color: #fff; background: rgba(16,185,129,0.22); box-shadow: 0 0 0 3px rgba(16,185,129,0.16); }
-        .step-dot.done { border-color: var(--green); color: var(--green); background: rgba(34,197,94,0.12); }
-        .step-line { flex: 1; height: 1px; background: var(--border-glass); margin: 0 10px; min-width: 14px; transition: background .3s ease; }
-        .step-line.done { background: rgba(34,197,94,0.4); }
+        .step-dot {
+          width: 26px; height: 26px; border-radius: 999px; display: flex; align-items: center; justify-content: center;
+          font-size: 11.5px; font-weight: 600; border: 1px solid var(--border-glass); background: rgba(2, 10, 5, 0.4); color: var(--text-tertiary);
+        }
+        .step-dot.done { background: #059669; border-color: #10b981; color: #022c18; }
+        .step-dot.active { border-color: #10b981; color: #10b981; background: rgba(16, 185, 129, 0.15); }
+        .step-line { flex: 1; height: 1px; background: var(--border-glass); margin: 0 10px; }
+        .step-line.done { background: #10b981; }
 
         .field {
-          width: 100%; background: rgba(10, 30, 20, 0.3); border: 1px solid var(--border-glass); border-radius: 10px;
-          padding: 11px 13px; color: var(--text-primary); font-size: 13.5px; transition: border-color .2s, box-shadow .2s;
+          width: 100%; padding: 10px 14px; border-radius: 10px; background: rgba(2, 10, 5, 0.5);
+          border: 1px solid var(--border-glass); color: var(--text-primary); outline: none; font-size: 13.5px; transition: border-color .2s;
         }
-        .field::placeholder { color: var(--text-tertiary); }
-        .field:focus { outline: none; border-color: var(--accent-blue-bright); box-shadow: 0 0 0 3px rgba(16,185,129,0.2); }
-        .field.error { border-color: var(--red); box-shadow: 0 0 0 3px rgba(229,85,90,0.14); }
+        .field:focus { border-color: var(--accent-blue-bright); }
+        .field.error { border-color: var(--red); }
 
-        .grade-chip { border: 1px solid var(--border-glass); background: rgba(10, 30, 20, 0.3); border-radius: 999px; padding: 9px 16px; font-size: 13px; color: var(--text-secondary); transition: all .25s ease; }
-        .grade-chip.active { border-color: var(--accent-blue-bright); background: rgba(16,185,129,0.22); color: #fff; box-shadow: 0 0 0 1px rgba(16,185,129,0.4); }
-        .grade-chip:not(.active):hover { border-color: var(--border-glass-hover); color: var(--text-primary); transform: translateY(-1px); }
+        .grade-chip {
+          padding: 8px 16px; border-radius: 10px; background: rgba(2, 10, 5, 0.5); border: 1px solid var(--border-glass);
+          color: var(--text-secondary); font-size: 13px; transition: all .2s;
+        }
+        .grade-chip.active { background: rgba(16, 185, 129, 0.2); border-color: var(--accent-blue-bright); color: var(--text-primary); }
 
-        .dropzone { border: 1.5px dashed var(--border-glass); background: rgba(10, 30, 20, 0.2); border-radius: 12px; transition: all .25s ease; }
-        .dropzone.drag { border-color: var(--accent-blue-bright); background: rgba(16,185,129,0.12); }
+        .dropzone {
+          border: 1px dashed var(--border-glass); border-radius: 12px; background: rgba(2, 10, 5, 0.3); transition: all .2s;
+        }
+        .dropzone.drag { border-color: var(--accent-blue-bright); background: rgba(16, 185, 129, 0.08); }
         .dropzone.error { border-color: var(--red); }
-        .doc-icon { width: 32px; height: 32px; border-radius: 8px; background: rgba(16,185,129,0.12); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-        .upload-btn { font-size: 11.5px; padding: 7px 11px; gap: 6px; }
-        .upload-track { height: 4px; border-radius: 999px; background: rgba(16, 185, 129, 0.1); overflow: hidden; }
-        .upload-fill { height: 100%; background: linear-gradient(90deg, #022c18, #10b981); transition: width .2s linear; }
-
-        .ticket { background: linear-gradient(180deg, rgba(16,185,129,0.1), rgba(10,30,20,0.2)); border: 1px solid var(--border-glass); border-radius: 14px; padding: 22px; }
-        .ticket-divider { border-top: 1px dashed var(--border-glass); }
-        .ticket-check { width: 34px; height: 34px; border-radius: 999px; background: rgba(34,197,94,0.18); color: var(--green); display: flex; align-items: center; justify-content: center; }
-
-        .footer-link { display: flex; padding: 6px 0; font-size: 13px; transition: color .2s, transform .2s; }
-        .footer-link:hover { color: var(--text-primary); transform: translateX(2px); }
-        .social-btn { width: 32px; height: 32px; border-radius: 999px; border: 1px solid var(--border-glass); background: var(--bg-card); display: flex; align-items: center; justify-content: center; color: var(--text-secondary); transition: all .25s ease; }
-        .social-btn:hover { color: #fff; border-color: var(--border-glass-hover); transform: translateY(-2px); }
-        .footer-bottom { border-top: 1px solid var(--border-glass); }
-        .watermark {
-          position: absolute; right: 0; bottom: -6px; font-size: 88px; font-weight: 700; letter-spacing: -0.03em;
-          color: transparent; -webkit-text-stroke: 1px rgba(16,185,129,0.08); pointer-events: none; user-select: none;
-          display: none;
+        .doc-icon {
+          width: 32px; height: 32px; border-radius: 8px; background: rgba(16, 185, 129, 0.12);
+          display: flex; align-items: center; justify-content: center;
         }
-        @media (min-width: 1024px) { .watermark { display: block; } }
+        .upload-btn { padding: 6px 12px; font-size: 12px; gap: 6px; cursor: pointer; }
+        .upload-track { height: 4px; width: 100%; background: rgba(16, 185, 129, 0.1); border-radius: 999px; overflow: hidden; }
+        .upload-fill { height: 100%; background: var(--accent-blue-bright); transition: width .2s; }
 
-        @media (prefers-reduced-motion: reduce) {
-          .lhs *, .lhs *::before, .lhs *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
-          .reveal-box { opacity: 1 !important; transform: none !important; filter: none !important; }
+        .ticket {
+          background: rgba(2, 12, 6, 0.7); border: 1px solid var(--border-glass-hover); border-radius: 16px; padding: 22px;
         }
+        .ticket-check {
+          width: 34px; height: 34px; border-radius: 999px; background: rgba(16, 185, 129, 0.2);
+          color: var(--accent-blue-bright); display: flex; align-items: center; justify-content: justify-center;
+        }
+        .ticket-divider { height: 1px; border-bottom: 1px dashed var(--border-glass); margin: 4px 0; }
+
+        .footer-link { font-size: 13px; display: flex; margin-bottom: 10px; transition: color .2s; }
+        .footer-link:hover { color: var(--text-primary); }
+        .social-btn {
+          width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--border-glass); background: var(--bg-card);
+          display: flex; align-items: center; justify-content: center; color: var(--text-secondary); transition: all .2s;
+        }
+        .social-btn:hover { border-color: var(--border-glass-hover); color: var(--text-primary); transform: translateY(-2px); }
+        .watermark { position: absolute; bottom: 10px; right: 20px; font-size: 80px; font-weight: 700; opacity: 0.02; pointer-events: none; }
       `}</style>
-
       <Header />
-      <main>
-        <Hero />
-        <BentoShowcase />
-        <RegistrationPortal />
-        <MonthlyPaymentSection />
-        <FeaturesGrid />
-      </main>
+      <Hero />
+      <BentoShowcase />
+      <FeaturesGrid />
+      <RegistrationPortal />
+      <MonthlyPaymentSection />
       <Footer />
     </div>
   );
 }
 
-const root = ReactDOM.createRoot(document.getElementById("root"));
+const rootElement = document.getElementById("root");
+const root = ReactDOM.createRoot(rootElement);
 root.render(<App />);
-
 </script>
-
 </body>
 </html>
