@@ -19,10 +19,8 @@
 <!-- Lucide React UMD -->
 <script src="https://unpkg.com/lucide-react@0.263.1/dist/umd/lucide-react.min.js"></script>
 
-<!-- Firebase v10 UMD Libraries -->
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
+<!-- Supabase JS Client -->
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
 <style>
   html, body { margin: 0; padding: 0; background: #020604; scroll-behavior: smooth; }
@@ -43,24 +41,34 @@
 const { useState, useEffect, useRef, useCallback, Fragment } = React;
 
 /* ------------------------------------------------------------------ */
-/*  Firebase Initialization                                           */
+/*  Supabase Initialization & Helper                                  */
 /* ------------------------------------------------------------------ */
-const firebaseConfig = {
-  apiKey: "AIzaSyBp8SMsQV0Hcq6zeI_rsKXvknVOo5asaxE",
-  authDomain: "lemlemschool-52765.firebaseapp.com",
-  projectId: "lemlemschool-52765",
-  storageBucket: "lemlemschool-52765.firebasestorage.app",
-  messagingSenderId: "527183620799",
-  appId: "1:527183620799:web:667d6595838545fe28f40a",
-  measurementId: "G-LTR6RV64MR"
-};
+const supabase = supabase.createClient(
+  'https://qfxywxmlhakgjmdgxdsx.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh3YmtxaHR3b2Vqa2FrdGFxdXpxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzNDkzMTksImV4cCI6MjEwMzkyNTMxOX0.532JrCZXpKW2CwC84OAEK5TXjqLSRRPaA7-7O4CDcVA'
+);
 
-// Initialize Firebase App & Services
-if (!firebase.apps.length) {
-  firebase.initializeApp(firebaseConfig);
+async function handleFileUpload(file) {
+  // Generate a unique file path using a timestamp
+  const filePath = `uploads/${Date.now()}_${file.name}`;
+
+  // 1. Upload file to Supabase Storage
+  const { data, error } = await supabase.storage
+    .from('receipts') // Replace with your bucket name
+    .upload(filePath, file);
+
+  if (error) {
+    console.error('Upload failed:', error.message);
+    return null;
+  }
+
+  // 2. Get the public URL to save with your form submission
+  const { data: urlData } = supabase.storage
+    .from('receipts')
+    .getPublicUrl(filePath);
+
+  return urlData.publicUrl;
 }
-const db = firebase.firestore();
-const storage = firebase.storage();
 
 const LOGO_URL = "https://raw.githubusercontent.com/monetox/Lemlem-school/111e78ac1c67c28734e125a37f785ec775a20745/IMG_20260818_230020_383.jpg";
 
@@ -868,7 +876,6 @@ function RegistrationPortal() {
     address: "",
   });
   const [files, setFiles] = useState({});
-  const timers = useRef({});
 
   function set(key, value) {
     setForm((f) => ({ ...f, [key]: value }));
@@ -878,34 +885,27 @@ function RegistrationPortal() {
     if (step === 4 && !appId) setAppId(genAppId());
   }, [step, appId]);
 
-  useEffect(() => {
-    return () => Object.values(timers.current).forEach(clearInterval);
-  }, []);
-
-  function simulateUpload(key, fileObj) {
-    setFiles((f) => ({ ...f, [key]: { name: fileObj.name, rawFile: fileObj, progress: 0 } }));
-    if (timers.current[key]) clearInterval(timers.current[key]);
-    let p = 0;
-    timers.current[key] = setInterval(() => {
-      p += Math.random() * 26 + 12;
-      if (p >= 100) {
-        p = 100;
-        clearInterval(timers.current[key]);
-      }
-      setFiles((f) => ({ ...f, [key]: { ...f[key], progress: Math.round(p) } }));
-    }, 220);
+  async function handleFileSelection(key, fileObj) {
+    if (!fileObj) return;
+    setFiles((f) => ({ ...f, [key]: { name: fileObj.name, rawFile: fileObj, progress: 50, url: null } }));
+    const url = await handleFileUpload(fileObj);
+    if (url) {
+      setFiles((f) => ({ ...f, [key]: { ...f[key], progress: 100, url } }));
+    } else {
+      setErrors((e) => ({ ...e, [key]: "File upload failed. Please try again." }));
+    }
   }
 
   function handleDrop(e, key) {
     e.preventDefault();
     setDragKey(null);
     const file = e.dataTransfer.files && e.dataTransfer.files[0];
-    if (file) simulateUpload(key, file);
+    if (file) handleFileSelection(key, file);
   }
 
   function handleBrowse(e, key) {
     const file = e.target.files && e.target.files[0];
-    if (file) simulateUpload(key, file);
+    if (file) handleFileSelection(key, file);
   }
 
   function validateStep(n) {
@@ -947,45 +947,40 @@ function RegistrationPortal() {
     const generatedId = appId || genAppId();
 
     try {
-      const uploadedUrls = {};
+      const uploadedUrls = {
+        transcript: files["transcript"]?.url || null,
+        id: files["id"]?.url || null,
+        photo: files["photo"]?.url || null,
+        receipt: files["receipt"]?.url || null,
+      };
 
-      // Upload files to Firebase Storage first
-      for (const [key, item] of Object.entries(files)) {
-        if (item?.rawFile) {
-          try {
-            const storageRef = storage.ref(`applications/${generatedId}/${key}_${item.rawFile.name}`);
-            const uploadSnap = await storageRef.put(item.rawFile);
-            uploadedUrls[key] = await uploadSnap.ref.getDownloadURL();
-          } catch (storageErr) {
-            console.warn(`Firebase Storage upload skipped/failed for ${key}:`, storageErr);
-            uploadedUrls[key] = "Uploaded directly";
+      const { data, error } = await supabase
+        .from('applications')
+        .insert([
+          {
+            app_id: generatedId,
+            application_type: mode === "new" ? "New Student" : "Returning Student",
+            student_name: form.fullName,
+            dob: form.dob,
+            grade: form.grade,
+            previous_school: mode === "new" ? form.previousSchool : "",
+            existing_student_id: mode === "returning" ? form.studentId : "",
+            guardian_name: form.guardianName,
+            relationship: form.relationship,
+            phone: form.phone,
+            email: form.email,
+            address: form.address,
+            file_urls: uploadedUrls,
+            status: "Pending",
+            amount_paid: 5340,
           }
-        }
-      }
+        ]);
 
-      // Record entry to Firestore
-      await db.collection("applications").doc(generatedId).set({
-        appId: generatedId,
-        applicationType: mode === "new" ? "New Student" : "Returning Student",
-        studentName: form.fullName,
-        dob: form.dob,
-        grade: form.grade,
-        previousSchool: mode === "new" ? form.previousSchool : "",
-        existingStudentId: mode === "returning" ? form.studentId : "",
-        guardianName: form.guardianName,
-        relationship: form.relationship,
-        phone: form.phone,
-        email: form.email,
-        address: form.address,
-        fileUrls: uploadedUrls,
-        status: "Pending",
-        amountPaid: 5340,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-      });
+      if (error) throw error;
 
       setIsSubmitted(true);
     } catch (err) {
-      console.error("Firestore submission error:", err);
+      console.error("Supabase submission error:", err);
       setSubmitError("Failed to save application to database. Please check your connection and try again.");
     } finally {
       setIsSubmitting(false);
@@ -1430,6 +1425,7 @@ function MonthlyPaymentSection() {
   const [refNum, setRefNum] = useState("");
   const [receiptFile, setReceiptFile] = useState(null);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [receiptUrl, setReceiptUrl] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [receiptRef, setReceiptRef] = useState("");
@@ -1448,17 +1444,18 @@ function MonthlyPaymentSection() {
     setTimeout(() => setCopied(false), 2000);
   }
 
-  function handleFileSelect(e) {
+  async function handleFileSelect(e) {
     const file = e.target.files?.[0];
     if (file) {
       setReceiptFile(file);
-      setUploadProgress(0);
-      let p = 0;
-      const interval = setInterval(() => {
-        p += 25;
-        setUploadProgress(p);
-        if (p >= 100) clearInterval(interval);
-      }, 150);
+      setUploadProgress(50);
+      const url = await handleFileUpload(file);
+      if (url) {
+        setReceiptUrl(url);
+        setUploadProgress(100);
+      } else {
+        setErrors((errs) => ({ ...errs, receiptFile: "File upload failed. Please try again." }));
+      }
     }
   }
 
@@ -1468,7 +1465,7 @@ function MonthlyPaymentSection() {
     if (!studentId.trim()) errs.studentId = "Student ID is required";
     if (!studentName.trim()) errs.studentName = "Student Name is required";
     if (!refNum.trim()) errs.refNum = "Transaction reference number is required";
-    if (!receiptFile) errs.receiptFile = "Please attach proof of payment";
+    if (!receiptFile || !receiptUrl) errs.receiptFile = "Please attach proof of payment";
 
     if (Object.keys(errs).length > 0) {
       setErrors(errs);
@@ -1481,37 +1478,27 @@ function MonthlyPaymentSection() {
     const generatedRef = genReceiptRef();
 
     try {
-      let receiptUrl = "";
+      const { data, error } = await supabase
+        .from('monthly_payments')
+        .insert([
+          {
+            receipt_ref: generatedRef,
+            student_id: studentId,
+            student_name: studentName,
+            grade,
+            month: selectedMonth,
+            base_tuition: baseTuition,
+            include_bus: includeBus,
+            include_meals: includeMeals,
+            total_amount: totalAmount,
+            payment_method: activeBank.name,
+            transaction_ref: refNum,
+            receipt_url: receiptUrl,
+            status: "Pending Verification",
+          }
+        ]);
 
-      // Upload payment receipt to Firebase Storage
-      if (receiptFile) {
-        try {
-          const storageRef = storage.ref(`payments/${generatedRef}_${receiptFile.name}`);
-          const snap = await storageRef.put(receiptFile);
-          receiptUrl = await snap.ref.getDownloadURL();
-        } catch (stErr) {
-          console.warn("Storage upload failed for payment receipt:", stErr);
-          receiptUrl = "Uploaded directly";
-        }
-      }
-
-      // Record transaction to Firestore
-      await db.collection("monthly_payments").doc(generatedRef).set({
-        receiptRef: generatedRef,
-        studentId,
-        studentName,
-        grade,
-        month: selectedMonth,
-        baseTuition,
-        includeBus,
-        includeMeals,
-        totalAmount,
-        paymentMethod: activeBank.name,
-        transactionRef: refNum,
-        receiptUrl,
-        status: "Pending Verification",
-        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-      });
+      if (error) throw error;
 
       setReceiptRef(generatedRef);
       setSubmitted(true);
@@ -1687,7 +1674,7 @@ function MonthlyPaymentSection() {
                     <Receipt size={18} className="text-accent" />
                     Submit Fee Payment Proof
                   </h3>
-                  <span className="lhs-mono text-xs text-accent">Firebase Realtime Sync</span>
+                  <span className="lhs-mono text-xs text-accent">Supabase Sync</span>
                 </div>
 
                 <div className="grid sm:grid-cols-2 gap-4">
@@ -1843,6 +1830,7 @@ function MonthlyPaymentSection() {
                       setSubmitted(false);
                       setReceiptFile(null);
                       setRefNum("");
+                      setReceiptUrl(null);
                     }}
                     className="btn-glass text-xs py-1.5 px-3"
                   >
@@ -1952,312 +1940,6 @@ function Footer() {
 function App() {
   return (
     <div className="lhs">
-      <style>{`
-        :root {
-          --bg-void: #020604;
-          --bg-elevated: #06120b;
-          --bg-card: rgba(10, 28, 18, 0.45);
-          --bg-card-hover: rgba(16, 42, 27, 0.65);
-          --border-glass: rgba(30, 70, 48, 0.35);
-          --border-glass-hover: rgba(45, 110, 75, 0.55);
-          
-          --accent-blue: #0d5c3a;
-          --accent-blue-bright: #10b981;
-          --accent-indigo: #022c18;
-          
-          --text-primary: #f0fdf4;
-          --text-secondary: #86efac;
-          --text-tertiary: #4ade80;
-          
-          --green: #22c55e;
-          --red: #e5555a;
-          --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
-          --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
-        }
-
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;650;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
-
-        .lhs, .lhs * { box-sizing: border-box; }
-        .lhs {
-          background: var(--bg-void);
-          color: var(--text-primary);
-          font-family: var(--font-sans);
-          letter-spacing: -0.011em;
-          position: relative;
-          min-height: 100vh;
-          overflow-x: hidden;
-        }
-        .lhs h1, .lhs h2, .lhs h3 { font-family: var(--font-sans); }
-        .lhs a { text-decoration: none; color: inherit; }
-        .lhs button { font-family: var(--font-sans); cursor: pointer; }
-        .lhs input, .lhs select { font-family: var(--font-sans); }
-        html { scroll-behavior: smooth; }
-
-        .reveal-box {
-          opacity: 0;
-          transform: translateY(28px);
-          filter: blur(6px);
-          transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
-                      transform 0.8s cubic-bezier(0.16, 1, 0.3, 1),
-                      filter 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-          will-change: opacity, transform, filter;
-        }
-
-        .reveal-box.is-visible {
-          opacity: 1;
-          transform: translateY(0);
-          filter: blur(0px);
-        }
-
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-
-        @keyframes fadeInUp {
-          from { opacity: 0; transform: translateY(12px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes scaleUp {
-          from { opacity: 0; transform: scale(0.96); }
-          to { opacity: 1; transform: scale(1); }
-        }
-
-        @keyframes floatSlow {
-          0%, 100% { transform: translate(-50%, 0); }
-          50% { transform: translate(-50%, -18px); }
-        }
-
-        @keyframes floatReverse {
-          0%, 100% { transform: translate(0, 0); }
-          50% { transform: translate(-14px, 14px); }
-        }
-
-        .animate-fade-in { animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        .animate-fade-in-up { animation: fadeInUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        .animate-scale-up { animation: scaleUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-
-        .float-slow { animation: floatSlow 12s ease-in-out infinite; }
-        .float-reverse { animation: floatReverse 14s ease-in-out infinite; }
-
-        .lhs-mono { font-family: var(--font-mono); }
-        .text-primary { color: var(--text-primary); }
-        .text-secondary { color: #a7f3d0; }
-        .text-tertiary { color: #5eead4; opacity: 0.75; }
-        .text-accent { color: var(--accent-blue-bright); }
-        .error-text { color: var(--red); }
-
-        .max-w-7xl { max-width: 1240px; }
-
-        .lhs::before {
-          content: '';
-          position: fixed;
-          inset: 0;
-          z-index: 0;
-          pointer-events: none;
-          opacity: 0.05;
-          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-        }
-
-        .grid-bg {
-          background-image:
-            linear-gradient(rgba(16, 185, 129, 0.05) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(16, 185, 129, 0.05) 1px, transparent 1px);
-          background-size: 56px 56px;
-        }
-
-        .ambient-glow {
-          position: absolute;
-          z-index: 0;
-          border-radius: 999px;
-          filter: blur(90px);
-          pointer-events: none;
-        }
-        .ambient-1 {
-          width: 520px; height: 420px; top: -160px; left: 50%; transform: translateX(-50%);
-          background: radial-gradient(circle, rgba(13, 92, 58, 0.45), transparent 70%);
-        }
-        .ambient-2 {
-          width: 460px; height: 380px; top: 120px; right: -140px;
-          background: radial-gradient(circle, rgba(2, 44, 24, 0.65), transparent 70%);
-        }
-
-        section, header, footer { position: relative; z-index: 1; }
-
-        .nav-shell { background: transparent; border-bottom: 1px solid transparent; transition: background .35s ease, border-color .35s ease, backdrop-filter .35s ease; }
-        .nav-scrolled { background: rgba(2, 6, 4, 0.85); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid var(--border-glass); }
-        .logo-mark {
-          width: 30px; height: 30px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center;
-          background: linear-gradient(155deg, #0d5c3a, #022c18);
-          color: #f0fdf4; font-size: 11.5px; font-weight: 600; border: 1px solid rgba(16, 185, 129, 0.3);
-        }
-        .pill-mini {
-          font-size: 10px; padding: 3px 7px; border-radius: 999px; border: 1px solid var(--border-glass);
-          color: var(--text-tertiary); letter-spacing: 0.04em;
-        }
-        .nav-link { font-size: 13.5px; padding: 8px 12px; border-radius: 8px; transition: color .2s, background .2s; }
-        .nav-link:hover { color: var(--text-primary); background: rgba(16, 185, 129, 0.08); }
-        .mobile-link { display: block; padding: 12px 10px; font-size: 14px; border-radius: 10px; }
-        .mobile-link:hover { background: rgba(16, 185, 129, 0.08); color: var(--text-primary); }
-
-        .btn-primary {
-          display: inline-flex; align-items: center; justify-content: center; border-radius: 10px;
-          background: linear-gradient(180deg, #10b981, #059669);
-          color: #022c18; font-weight: 600; border: 1px solid rgba(255,255,255,0.15);
-          box-shadow: 0 1px 0 rgba(255,255,255,0.2) inset, 0 10px 30px -10px rgba(16, 185, 129, 0.5);
-          position: relative; overflow: hidden; transition: transform .25s ease, box-shadow .25s ease;
-        }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 1px 0 rgba(255,255,255,0.3) inset, 0 14px 34px -8px rgba(16, 185, 129, 0.7); }
-        .btn-primary::after {
-          content: ''; position: absolute; top: 0; left: -60%; width: 40%; height: 100%;
-          background: linear-gradient(115deg, transparent, rgba(255,255,255,0.3), transparent);
-          transform: skewX(-20deg); transition: left .6s ease;
-        }
-        .btn-primary:hover::after { left: 130%; }
-
-        .btn-glass {
-          display: inline-flex; align-items: center; justify-content: center; border-radius: 10px;
-          background: var(--bg-card); border: 1px solid var(--border-glass); color: var(--text-primary);
-          font-weight: 500; transition: background .25s, border-color .25s, transform .25s;
-        }
-        .btn-glass:hover { background: var(--bg-card-hover); border-color: var(--border-glass-hover); transform: translateY(-2px); }
-
-        .pill { border-radius: 999px; border: 1px solid var(--border-glass); background: var(--bg-card); transition: border-color .25s, background .25s, transform .25s; }
-        .pill:hover { border-color: rgba(16,185,129,0.55); background: rgba(16,185,129,0.12); transform: translateY(-2px); }
-        .pill-icon { color: var(--accent-blue-bright); display: inline-flex; }
-
-        .kbd {
-          font-family: var(--font-mono); font-size: 11px; background: rgba(16, 185, 129, 0.1);
-          border: 1px solid var(--border-glass); border-bottom-width: 2px; border-radius: 6px;
-          padding: 2px 7px; color: var(--text-secondary);
-        }
-
-        .glass { background: var(--bg-card); border: 1px solid var(--border-glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
-        .spot-card { position: relative; overflow: hidden; border-radius: 18px; transition: border-color .35s ease, transform .35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow .35s ease; }
-        .spot-card:hover { border-color: var(--border-glass-hover); transform: translateY(-4px); box-shadow: 0 20px 40px -20px rgba(0,0,0,0.6); }
-        .spot-card::before {
-          content: ''; position: absolute; inset: 0; opacity: 0; transition: opacity .35s ease; pointer-events: none;
-          background: radial-gradient(360px circle at var(--mx,50%) var(--my,50%), rgba(16, 185, 129, 0.12), transparent 45%);
-        }
-        .spot-card:hover::before { opacity: 1; }
-
-        .gradient-text {
-          background: linear-gradient(180deg, #FFFFFF 0%, #a7f3d0 100%);
-          -webkit-background-clip: text; background-clip: text; color: transparent;
-        }
-
-        .dot-live {
-          width: 6px; height: 6px; border-radius: 999px; background: var(--green); display: inline-block;
-          box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.6); animation: pulse-ring 2.2s infinite;
-        }
-        @keyframes pulse-ring {
-          0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.5); }
-          70% { box-shadow: 0 0 0 7px rgba(34, 197, 94, 0); }
-          100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
-        }
-
-        .dashboard-card { box-shadow: 0 30px 80px -30px rgba(0,0,0,0.9); }
-        .dash-tile { background: rgba(10, 35, 22, 0.3); border: 1px solid var(--border-glass); border-radius: 12px; padding: 12px; text-align: left; }
-        .bar { flex: 1; min-width: 4px; border-radius: 3px 3px 0 0; background: linear-gradient(180deg, #10b981, rgba(5, 150, 105, 0.25));
-          animation: bar-rise .7s ease backwards; }
-        @keyframes bar-rise { from { transform: scaleY(0); transform-origin: bottom; } to { transform: scaleY(1); } }
-
-        .eyebrow { color: var(--accent-blue-bright); font-weight: 600; }
-        .bento-card { background: var(--bg-card); border: 1px solid var(--border-glass); }
-        
-        .lhs-range {
-          width: 100%; height: 4px; border-radius: 2px; outline: none; accent-color: var(--accent-blue-bright);
-          background: rgba(16, 185, 129, 0.15);
-        }
-        .year-dot {
-          background: none; border: none; color: var(--text-tertiary); font-size: 11px; cursor: pointer; padding: 2px 4px;
-          transition: color .2s;
-        }
-        .year-dot.active { color: var(--accent-blue-bright); font-weight: 600; }
-
-        .bar-track { height: 5px; width: 100%; background: rgba(16, 185, 129, 0.1); border-radius: 999px; overflow: hidden; }
-        .bar-fill { height: 100%; background: linear-gradient(90deg, #059669, #10b981); border-radius: 999px; }
-
-        .chip {
-          padding: 6px 12px; border-radius: 8px; font-size: 12px; background: rgba(10, 35, 22, 0.4);
-          border: 1px solid var(--border-glass); color: var(--text-secondary); transition: all .2s;
-        }
-        .chip.active, .chip:hover { background: rgba(16, 185, 129, 0.18); border-color: var(--accent-blue-bright); color: var(--text-primary); }
-
-        .code-block {
-          background: #020a05; border: 1px solid var(--border-glass); border-radius: 12px; padding: 14px; overflow: hidden;
-        }
-        .code-titlebar { display: flex; align-items: center; gap: 6px; margin-bottom: 12px; }
-        .code-dot { width: 9px; height: 9px; border-radius: 999px; display: inline-block; }
-        .code-pre { margin: 0; font-size: 12.5px; line-height: 1.55; color: #a7f3d0; overflow-x: auto; }
-        .tok-str { color: #34d399; }
-        .tok-num { color: #f59e0b; }
-        .tok-key { color: #60a5fa; }
-
-        .pillar-card { background: var(--bg-card); border: 1px solid var(--border-glass); }
-        .pillar-icon {
-          width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center;
-          background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.25);
-        }
-
-        .segmented { display: flex; background: rgba(2, 10, 5, 0.6); padding: 4px; border-radius: 12px; border: 1px solid var(--border-glass); }
-        .segment { flex: 1; padding: 8px 12px; border-radius: 8px; border: none; background: transparent; color: var(--text-secondary); font-size: 12.5px; transition: all .2s; }
-        .segment.active { background: rgba(16, 185, 129, 0.18); color: var(--text-primary); border: 1px solid var(--border-glass-hover); }
-
-        .step-dot {
-          width: 26px; height: 26px; border-radius: 999px; display: flex; align-items: center; justify-content: center;
-          font-size: 11.5px; font-weight: 600; border: 1px solid var(--border-glass); background: rgba(2, 10, 5, 0.4); color: var(--text-tertiary);
-        }
-        .step-dot.done { background: #059669; border-color: #10b981; color: #022c18; }
-        .step-dot.active { border-color: #10b981; color: #10b981; background: rgba(16, 185, 129, 0.15); }
-        .step-line { flex: 1; height: 1px; background: var(--border-glass); margin: 0 10px; }
-        .step-line.done { background: #10b981; }
-
-        .field {
-          width: 100%; padding: 10px 14px; border-radius: 10px; background: rgba(2, 10, 5, 0.5);
-          border: 1px solid var(--border-glass); color: var(--text-primary); outline: none; font-size: 13.5px; transition: border-color .2s;
-        }
-        .field:focus { border-color: var(--accent-blue-bright); }
-        .field.error { border-color: var(--red); }
-
-        .grade-chip {
-          padding: 8px 16px; border-radius: 10px; background: rgba(2, 10, 5, 0.5); border: 1px solid var(--border-glass);
-          color: var(--text-secondary); font-size: 13px; transition: all .2s;
-        }
-        .grade-chip.active { background: rgba(16, 185, 129, 0.2); border-color: var(--accent-blue-bright); color: var(--text-primary); }
-
-        .dropzone {
-          border: 1px dashed var(--border-glass); border-radius: 12px; background: rgba(2, 10, 5, 0.3); transition: all .2s;
-        }
-        .dropzone.drag { border-color: var(--accent-blue-bright); background: rgba(16, 185, 129, 0.08); }
-        .dropzone.error { border-color: var(--red); }
-        .doc-icon {
-          width: 32px; height: 32px; border-radius: 8px; background: rgba(16, 185, 129, 0.12);
-          display: flex; align-items: center; justify-content: center;
-        }
-        .upload-btn { padding: 6px 12px; font-size: 12px; gap: 6px; cursor: pointer; }
-        .upload-track { height: 4px; width: 100%; background: rgba(16, 185, 129, 0.1); border-radius: 999px; overflow: hidden; }
-        .upload-fill { height: 100%; background: var(--accent-blue-bright); transition: width .2s; }
-
-        .ticket {
-          background: rgba(2, 12, 6, 0.7); border: 1px solid var(--border-glass-hover); border-radius: 16px; padding: 22px;
-        }
-        .ticket-check {
-          width: 34px; height: 34px; border-radius: 999px; background: rgba(16, 185, 129, 0.2);
-          color: var(--accent-blue-bright); display: flex; align-items: center; justify-content: justify-center;
-        }
-        .ticket-divider { height: 1px; border-bottom: 1px dashed var(--border-glass); margin: 4px 0; }
-
-        .footer-link { font-size: 13px; display: flex; margin-bottom: 10px; transition: color .2s; }
-        .footer-link:hover { color: var(--text-primary); }
-        .social-btn {
-          width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--border-glass); background: var(--bg-card);
-          display: flex; align-items: center; justify-content: center; color: var(--text-secondary); transition: all .2s;
-        }
-        .social-btn:hover { border-color: var(--border-glass-hover); color: var(--text-primary); transform: translateY(-2px); }
-        .watermark { position: absolute; bottom: 10px; right: 20px; font-size: 80px; font-weight: 700; opacity: 0.02; pointer-events: none; }
-      `}</style>
       <Header />
       <Hero />
       <BentoShowcase />
@@ -2269,9 +1951,7 @@ function App() {
   );
 }
 
-const rootElement = document.getElementById("root");
-const root = ReactDOM.createRoot(rootElement);
-root.render(<App />);
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
 </script>
 </body>
 </html>
