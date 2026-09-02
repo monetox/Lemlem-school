@@ -19,9 +19,6 @@
 <!-- Lucide React UMD -->
 <script src="https://unpkg.com/lucide-react@0.263.1/dist/umd/lucide-react.min.js"></script>
 
-<!-- Supabase JS Client -->
-<script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-
 <style>
   html, body { margin: 0; padding: 0; background: #020604; scroll-behavior: smooth; }
   #root { min-height: 100vh; }
@@ -39,37 +36,6 @@
 
 <script type="text/babel" data-presets="react">
 const { useState, useEffect, useRef, useCallback, Fragment } = React;
-
-// Initialize Supabase Client
-const { createClient } = window.supabase;
-const supabase = createClient(
-  'https://qfxywxmlhakgjmdgxdsx.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh3YmtxaHR3b2Vqa2FrdGFxdXpxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzNDkzMTksImV4cCI6MjEwMzkyNTMxOX0.532JrCZXpKW2CwC84OAEK5TXjqLSRRPaA7-7O4CDcVA'
-);
-
-async function handleFileUpload(file) {
-  if (!file) return null;
-  
-  // Generate a unique file path using a timestamp
-  const filePath = `uploads/${Date.now()}_${file.name}`;
-
-  // 1. Upload file to Supabase Storage
-  const { data, error } = await supabase.storage
-    .from('receipts') // Replace with your bucket name if different
-    .upload(filePath, file);
-
-  if (error) {
-    console.error('Upload failed:', error.message);
-    throw new Error(error.message);
-  }
-
-  // 2. Get the public URL to save with your submission
-  const { data: urlData } = supabase.storage
-    .from('receipts')
-    .getPublicUrl(filePath);
-
-  return urlData.publicUrl;
-}
 
 const LOGO_URL = "https://raw.githubusercontent.com/monetox/Lemlem-school/111e78ac1c67c28734e125a37f785ec775a20745/IMG_20260818_230020_383.jpg";
 
@@ -110,9 +76,75 @@ const Copy = safeIcon(lucideObj.Copy);
 const Clock = safeIcon(lucideObj.Clock);
 const User = safeIcon(lucideObj.User);
 const Code2 = safeIcon(lucideObj.Code2);
-const Heart = safeIcon(lucideObj.Heart);
-const Building = safeIcon(lucideObj.Building);
 const Send = safeIcon(lucideObj.Send);
+
+/* ------------------------------------------------------------------ */
+/*  FormSubmit Attachment Helper                                       */
+/* ------------------------------------------------------------------ */
+
+function submitFormsubmitWithFiles(targetUrl, fields, files) {
+  return new Promise((resolve, reject) => {
+    try {
+      const iframeName = 'fs_iframe_' + Date.now();
+      const iframe = document.createElement('iframe');
+      iframe.name = iframeName;
+      iframe.style.display = 'none';
+      document.body.appendChild(iframe);
+
+      const form = document.createElement('form');
+      form.action = targetUrl;
+      form.method = 'POST';
+      form.enctype = 'multipart/form-data';
+      form.target = iframeName;
+      form.style.display = 'none';
+
+      // Disable FormSubmit default captcha redirect if configured
+      const captchaInput = document.createElement('input');
+      captchaInput.type = 'hidden';
+      captchaInput.name = '_captcha';
+      captchaInput.value = 'false';
+      form.appendChild(captchaInput);
+
+      // Append text inputs
+      Object.entries(fields).forEach(([key, val]) => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = key;
+        input.value = val || '';
+        form.appendChild(input);
+      });
+
+      // Append file inputs via DataTransfer
+      Object.entries(files).forEach(([key, fileObj]) => {
+        if (fileObj) {
+          const fileInput = document.createElement('input');
+          fileInput.type = 'file';
+          fileInput.name = key;
+
+          const dt = new DataTransfer();
+          dt.items.add(fileObj);
+          fileInput.files = dt.files;
+
+          form.appendChild(fileInput);
+        }
+      });
+
+      document.body.appendChild(form);
+
+      iframe.onload = () => {
+        setTimeout(() => {
+          if (document.body.contains(form)) document.body.removeChild(form);
+          if (document.body.contains(iframe)) document.body.removeChild(iframe);
+        }, 500);
+        resolve();
+      };
+
+      form.submit();
+    } catch (err) {
+      reject(err);
+    }
+  });
+}
 
 /* ------------------------------------------------------------------ */
 /*  Animation Utilities & Components                                  */
@@ -816,7 +848,7 @@ const STEP_ITEMS = [
 
 function ProgressRail({ step }) {
   return (
-    <div className="flex items-center" style={{ marginBottom: "30px" }}>
+    <div className="flex items-center justify-between" style={{ marginBottom: "30px" }}>
       {STEP_ITEMS.map((item, i) => {
         const n = i + 1;
         const state = n < step ? "done" : n === step ? "active" : "todo";
@@ -954,23 +986,35 @@ function RegistrationPortal() {
     setSubmitError(null);
 
     try {
-      // Upload required files directly to Supabase Storage bucket
-      if (files["receipt"]?.rawFile) {
-        await handleFileUpload(files["receipt"].rawFile);
-      }
-      if (files["transcript"]?.rawFile) {
-        await handleFileUpload(files["transcript"].rawFile);
-      }
-      if (files["id"]?.rawFile) {
-        await handleFileUpload(files["id"].rawFile);
-      }
-      if (files["photo"]?.rawFile) {
-        await handleFileUpload(files["photo"].rawFile);
-      }
+      const textFields = {
+        "Application Type": mode === "new" ? "New Student Application" : "Returning Student Re-registration",
+        "Application ID": appId || genAppId(),
+        "Student Name": form.fullName,
+        "Date of Birth": form.dob,
+        "Grade": form.grade,
+        [mode === "new" ? "Previous School" : "Student ID"]: mode === "new" ? form.previousSchool : form.studentId,
+        "Guardian Name": form.guardianName,
+        "Relationship": form.relationship,
+        "Phone Number": form.phone,
+        "Email": form.email,
+        "Home Address": form.address,
+      };
+
+      const fileFields = {};
+      if (files["transcript"]?.rawFile) fileFields["Transcript"] = files["transcript"].rawFile;
+      if (files["id"]?.rawFile) fileFields["ID_Document"] = files["id"].rawFile;
+      if (files["photo"]?.rawFile) fileFields["Passport_Photo"] = files["photo"].rawFile;
+      if (files["receipt"]?.rawFile) fileFields["Payment_Receipt"] = files["receipt"].rawFile;
+
+      await submitFormsubmitWithFiles(
+        "https://formsubmit.co/asfawlemlemschool@gmail.com",
+        textFields,
+        fileFields
+      );
 
       setIsSubmitted(true);
     } catch (err) {
-      setSubmitError("Failed to upload application files. " + (err.message || "Please check your connection and try again."));
+      setSubmitError("Failed to submit application. Please check your connection and try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -1376,7 +1420,7 @@ function RegistrationPortal() {
                 <button onClick={next} disabled={isSubmitting} className="btn-primary flex items-center" style={{ padding: "10px 18px", gap: "6px", fontSize: "13.5px", opacity: isSubmitting ? 0.7 : 1 }}>
                   {isSubmitting ? (
                     <>
-                      <Loader2 size={16} className="animate-spin" /> Uploading...
+                      <Loader2 size={16} className="animate-spin" /> Submitting...
                     </>
                   ) : (
                     <>
@@ -1463,13 +1507,33 @@ function MonthlyPaymentSection() {
     setErrors({});
 
     try {
-      // Upload file directly using Supabase handleFileUpload
-      await handleFileUpload(receiptFile);
+      const textFields = {
+        "Form Type": "Monthly Fee Payment",
+        "Student ID": studentId,
+        "Student Name": studentName,
+        "Grade": grade,
+        "Payment Month": selectedMonth,
+        "Base Tuition": `${baseTuition} ETB`,
+        "Bus Service": includeBus ? "Yes (1,200 ETB)" : "No",
+        "Meal Plan": includeMeals ? "Yes (1,500 ETB)" : "No",
+        "Total Paid Amount": `${totalAmount} ETB`,
+        "Payment Method": activeBank.name,
+        "Transaction Ref Number": refNum,
+      };
+
+      const fileFields = {};
+      if (receiptFile) fileFields["Payment_Receipt"] = receiptFile;
+
+      await submitFormsubmitWithFiles(
+        "https://formsubmit.co/asfawlemlemschool@gmail.com",
+        textFields,
+        fileFields
+      );
 
       setReceiptRef(genReceiptRef());
       setSubmitted(true);
     } catch (err) {
-      setErrors({ submit: "Upload failed: " + (err.message || "Please check your connection.") });
+      setErrors({ submit: "Submission failed. Please check your connection." });
     } finally {
       setSubmitting(false);
     }
@@ -1639,7 +1703,7 @@ function MonthlyPaymentSection() {
                     <Receipt size={18} className="text-accent" />
                     Submit Fee Payment Proof
                   </h3>
-                  <span className="lhs-mono text-xs text-accent">Supabase Cloud Storage Sync</span>
+                  <span className="lhs-mono text-xs text-accent">FormSubmit Direct Sync</span>
                 </div>
 
                 <div className="grid sm:grid-cols-2 gap-4">
@@ -1851,7 +1915,7 @@ function Footer() {
               {NAV_LINKS.map((l) => {
                 const Icon = l.icon;
                 return (
-                  <a key={l.label} href={l.href} className="footer-link text-tertiary items-center gap-1.5">
+                  <a key={l.label} href={l.href} className="footer-link text-tertiary items-center gap-1.5 flex mb-2">
                     <Icon size={13} className="opacity-70" />
                     {l.label}
                   </a>
@@ -1863,19 +1927,19 @@ function Footer() {
               <div className="text-primary" style={{ fontSize: "13px", fontWeight: 600, marginBottom: "14px" }}>
                 Contact
               </div>
-              <div className="flex items-center text-tertiary footer-link" style={{ gap: "8px" }}>
+              <div className="flex items-center text-tertiary footer-link mb-2" style={{ gap: "8px" }}>
                 <MapPin size={13} /> Addis Ababa, Ethiopia
               </div>
-              <div className="flex items-center text-tertiary footer-link" style={{ gap: "8px" }}>
+              <div className="flex items-center text-tertiary footer-link mb-2" style={{ gap: "8px" }}>
                 <Phone size={13} /> +251 11 555 0134
               </div>
-              <div className="flex items-center text-tertiary footer-link" style={{ gap: "8px" }}>
+              <div className="flex items-center text-tertiary footer-link mb-2" style={{ gap: "8px" }}>
                 <Mail size={13} /> admissions@lemlemhigh.edu.et
               </div>
             </div>
           </div>
 
-          <div className="footer-bottom flex items-center justify-between flex-wrap" style={{ paddingTop: "22px", gap: "14px" }}>
+          <div className="footer-bottom flex items-center justify-between flex-wrap" style={{ paddingTop: "22px", borderTop: "1px solid var(--border-glass)", gap: "14px" }}>
             <div className="flex items-center text-tertiary" style={{ gap: "8px", fontSize: "12px" }}>
               <span className="dot-live" />
               Portal status: all systems operational
@@ -1888,9 +1952,6 @@ function Footer() {
               </span>
             </div>
           </div>
-
-          <div className="watermark lhs-mono" aria-hidden="true">
-          </div>
         </Reveal>
       </div>
     </footer>
@@ -1898,7 +1959,7 @@ function Footer() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  App                                                                 */
+/*  App Main                                                          */
 /* ------------------------------------------------------------------ */
 
 function App() {
@@ -2039,11 +2100,6 @@ function App() {
 
         .nav-shell { background: transparent; border-bottom: 1px solid transparent; transition: background .35s ease, border-color .35s ease, backdrop-filter .35s ease; }
         .nav-scrolled { background: rgba(2, 6, 4, 0.85); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid var(--border-glass); }
-        .logo-mark {
-          width: 30px; height: 30px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center;
-          background: linear-gradient(155deg, #0d5c3a, #022c18);
-          color: #f0fdf4; font-size: 11.5px; font-weight: 600; border: 1px solid rgba(16, 185, 129, 0.3);
-        }
         .pill-mini {
           font-size: 10px; padding: 3px 7px; border-radius: 999px; border: 1px solid var(--border-glass);
           color: var(--text-tertiary); letter-spacing: 0.04em;
@@ -2061,12 +2117,6 @@ function App() {
           position: relative; overflow: hidden; transition: transform .25s ease, box-shadow .25s ease;
         }
         .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 1px 0 rgba(255,255,255,0.3) inset, 0 14px 34px -8px rgba(16, 185, 129, 0.7); }
-        .btn-primary::after {
-          content: ''; position: absolute; top: 0; left: -60%; width: 40%; height: 100%;
-          background: linear-gradient(115deg, transparent, rgba(255,255,255,0.3), transparent);
-          transform: skewX(-20deg); transition: left .6s ease;
-        }
-        .btn-primary:hover::after { left: 130%; }
 
         .btn-glass {
           display: inline-flex; align-items: center; justify-content: center; border-radius: 10px;
@@ -2088,11 +2138,6 @@ function App() {
         .glass { background: var(--bg-card); border: 1px solid var(--border-glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
         .spot-card { position: relative; overflow: hidden; border-radius: 18px; transition: border-color .35s ease, transform .35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow .35s ease; }
         .spot-card:hover { border-color: var(--border-glass-hover); transform: translateY(-4px); box-shadow: 0 20px 40px -20px rgba(0,0,0,0.6); }
-        .spot-card::before {
-          content: ''; position: absolute; inset: 0; opacity: 0; transition: opacity .35s ease; pointer-events: none;
-          background: radial-gradient(360px circle at var(--mx,50%) var(--my,50%), rgba(16, 185, 129, 0.12), transparent 45%);
-        }
-        .spot-card:hover::before { opacity: 1; }
 
         .gradient-text {
           background: linear-gradient(180deg, #FFFFFF 0%, #a7f3d0 100%);
@@ -2109,11 +2154,8 @@ function App() {
           100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
         }
 
-        .dashboard-card { box-shadow: 0 30px 80px -30px rgba(0,0,0,0.9); }
         .dash-tile { background: rgba(10, 35, 22, 0.3); border: 1px solid var(--border-glass); border-radius: 12px; padding: 12px; text-align: left; }
-        .bar { flex: 1; min-width: 4px; border-radius: 3px 3px 0 0; background: linear-gradient(180deg, #10b981, rgba(5, 150, 105, 0.25));
-          animation: bar-rise .7s ease backwards; }
-        @keyframes bar-rise { from { transform: scaleY(0); transform-origin: bottom; } to { transform: scaleY(1); } }
+        .bar { flex: 1; min-width: 4px; border-radius: 3px 3px 0 0; background: linear-gradient(180deg, #10b981, rgba(5, 150, 105, 0.25)); animation: bar-rise .7s ease backwards; }
 
         .eyebrow { color: var(--accent-blue-bright); font-weight: 600; }
 
@@ -2123,11 +2165,8 @@ function App() {
         .lhs-range::-webkit-slider-thumb {
           -webkit-appearance: none; width: 15px; height: 15px; border-radius: 999px;
           background: var(--accent-blue-bright); border: 2px solid #fff; box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.25); cursor: pointer;
-          transition: transform .2s;
         }
-        .lhs-range::-webkit-slider-thumb:hover { transform: scale(1.15); }
-        .year-dot { background: none; border: none; color: var(--text-tertiary); font-size: 10.5px; padding: 4px 2px; transition: color .2s, transform .2s; }
-        .year-dot:hover { transform: translateY(-1px); color: var(--text-primary); }
+        .year-dot { background: none; border: none; color: var(--text-tertiary); font-size: 10.5px; padding: 4px 2px; }
         .year-dot.active { color: var(--accent-blue-bright); font-weight: 600; }
 
         .bar-track { height: 5px; border-radius: 999px; background: rgba(16, 185, 129, 0.1); overflow: hidden; }
@@ -2143,79 +2182,62 @@ function App() {
 
         .chip { border-radius: 8px; border: 1px solid var(--border-glass); background: rgba(10, 30, 20, 0.3); padding: 7px 12px; font-size: 12px; color: var(--text-secondary); transition: all .25s ease; }
         .chip.active { border-color: var(--accent-blue); background: rgba(16,185,129,0.18); color: #fff; box-shadow: 0 0 0 1px rgba(16,185,129,0.4); }
-        .chip:not(.active):hover { border-color: var(--border-glass-hover); color: var(--text-primary); transform: translateY(-1px); }
 
         .pillar-icon { width: 34px; height: 34px; border-radius: 999px; background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.25); display: flex; align-items: center; justify-content: center; }
 
-        .segmented { display: flex; background: rgba(10, 30, 20, 0.4); border: 1px solid var(--border-glass); border-radius: 12px; padding: 4px; gap: 4px; }
-        .segment { flex: 1; padding: 10px 12px; border-radius: 999px; border: none; background: transparent; color: var(--text-tertiary); font-size: 12.5px; transition: all .25s ease; }
-        .segment.active { background: rgba(16,185,129,0.22); color: #fff; box-shadow: 0 0 0 1px rgba(16,185,129,0.4); }
+        .segmented { display: flex; background: rgba(10, 30, 20, 0.6); border: 1px solid var(--border-glass); padding: 4px; border-radius: 12px; gap: 4px; }
+        .segment { flex: 1; padding: 8px; font-size: 12.5px; color: var(--text-tertiary); border: none; border-radius: 8px; background: transparent; transition: all .2s ease; }
+        .segment.active { background: var(--bg-card-hover); color: var(--text-primary); border: 1px solid var(--border-glass-hover); }
 
-        .step-dot { width: 24px; height: 24px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; border: 1px solid var(--border-glass); color: var(--text-tertiary); flex-shrink: 0; transition: all .3s ease; }
-        .step-dot.active { border-color: var(--accent-blue-bright); color: #fff; background: rgba(16,185,129,0.22); box-shadow: 0 0 0 3px rgba(16,185,129,0.16); }
-        .step-dot.done { border-color: var(--green); color: var(--green); background: rgba(34,197,94,0.12); }
-        .step-line { flex: 1; height: 1px; background: var(--border-glass); margin: 0 10px; min-width: 14px; transition: background .3s ease; }
-        .step-line.done { background: rgba(34,197,94,0.4); }
+        .step-dot { width: 26px; height: 26px; border-radius: 999px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-glass); font-size: 12px; background: var(--bg-elevated); color: var(--text-tertiary); }
+        .step-dot.active { border-color: var(--accent-blue-bright); color: var(--accent-blue-bright); background: rgba(16,185,129,0.15); }
+        .step-dot.done { border-color: var(--accent-blue-bright); background: var(--accent-blue-bright); color: #022c18; }
+        .step-line { flex: 1; height: 1px; background: var(--border-glass); margin: 0 8px; }
+        .step-line.done { background: var(--accent-blue-bright); }
 
-        .field {
-          width: 100%; background: rgba(10, 30, 20, 0.3); border: 1px solid var(--border-glass); border-radius: 10px;
-          padding: 11px 13px; color: var(--text-primary); font-size: 13.5px; transition: border-color .2s, box-shadow .2s;
-        }
-        .field::placeholder { color: var(--text-tertiary); }
-        .field:focus { outline: none; border-color: var(--accent-blue-bright); box-shadow: 0 0 0 3px rgba(16,185,129,0.2); }
-        .field.error { border-color: var(--red); box-shadow: 0 0 0 3px rgba(229,85,90,0.14); }
+        .field { width: 100%; padding: 10px 14px; border-radius: 8px; background: rgba(2, 11, 6, 0.7); border: 1px solid var(--border-glass); color: var(--text-primary); outline: none; transition: border-color .2s; }
+        .field:focus { border-color: var(--accent-blue-bright); }
+        .field.error { border-color: var(--red); }
 
-        .grade-chip { border: 1px solid var(--border-glass); background: rgba(10, 30, 20, 0.3); border-radius: 999px; padding: 9px 16px; font-size: 13px; color: var(--text-secondary); transition: all .25s ease; }
-        .grade-chip.active { border-color: var(--accent-blue-bright); background: rgba(16,185,129,0.22); color: #fff; box-shadow: 0 0 0 1px rgba(16,185,129,0.4); }
-        .grade-chip:not(.active):hover { border-color: var(--border-glass-hover); color: var(--text-primary); transform: translateY(-1px); }
+        .grade-chip { padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border-glass); background: rgba(10,30,20,0.3); color: var(--text-secondary); font-size: 13px; }
+        .grade-chip.active { border-color: var(--accent-blue-bright); background: rgba(16,185,129,0.2); color: #fff; }
 
-        .dropzone { border: 1.5px dashed var(--border-glass); background: rgba(10, 30, 20, 0.2); border-radius: 12px; transition: all .25s ease; }
-        .dropzone.drag { border-color: var(--accent-blue-bright); background: rgba(16,185,129,0.12); }
+        .dropzone { border: 1px dashed var(--border-glass); border-radius: 12px; background: rgba(6, 18, 11, 0.4); transition: border-color .2s; }
+        .dropzone.drag { border-color: var(--accent-blue-bright); background: rgba(16,185,129,0.08); }
         .dropzone.error { border-color: var(--red); }
-        .doc-icon { width: 32px; height: 32px; border-radius: 8px; background: rgba(16,185,129,0.12); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-        .upload-btn { font-size: 11.5px; padding: 7px 11px; gap: 6px; }
+
         .upload-track { height: 4px; border-radius: 999px; background: rgba(16, 185, 129, 0.1); overflow: hidden; }
-        .upload-fill { height: 100%; background: linear-gradient(90deg, #022c18, #10b981); transition: width .2s linear; }
+        .upload-fill { height: 100%; background: var(--accent-blue-bright); transition: width .3s ease; }
 
-        .ticket { background: linear-gradient(180deg, rgba(16,185,129,0.1), rgba(10,30,20,0.2)); border: 1px solid var(--border-glass); border-radius: 14px; padding: 22px; }
-        .ticket-divider { border-top: 1px dashed var(--border-glass); }
-        .ticket-check { width: 34px; height: 34px; border-radius: 999px; background: rgba(34,197,94,0.18); color: var(--green); display: flex; align-items: center; justify-content: center; }
+        .doc-icon { width: 32px; height: 32px; border-radius: 8px; background: rgba(16, 185, 129, 0.12); display: flex; align-items: center; justify-content: center; }
 
-        .footer-link { display: flex; padding: 6px 0; font-size: 13px; transition: color .2s, transform .2s; }
-        .footer-link:hover { color: var(--text-primary); transform: translateX(2px); }
-        .social-btn { width: 32px; height: 32px; border-radius: 999px; border: 1px solid var(--border-glass); background: var(--bg-card); display: flex; align-items: center; justify-content: center; color: var(--text-secondary); transition: all .25s ease; }
-        .social-btn:hover { color: #fff; border-color: var(--border-glass-hover); transform: translateY(-2px); }
-        .footer-bottom { border-top: 1px solid var(--border-glass); }
-        .watermark {
-          position: absolute; right: 0; bottom: -6px; font-size: 88px; font-weight: 700; letter-spacing: -0.03em;
-          color: transparent; -webkit-text-stroke: 1px rgba(16,185,129,0.08); pointer-events: none; user-select: none;
-          display: none;
-        }
-        @media (min-width: 1024px) { .watermark { display: block; } }
-
-        @media (prefers-reduced-motion: reduce) {
-          .lhs *, .lhs *::before, .lhs *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
-          .reveal-box { opacity: 1 !important; transform: none !important; filter: none !important; }
-        }
+        .ticket { background: rgba(6, 18, 11, 0.8); border: 1px solid var(--border-glass-hover); border-radius: 16px; padding: 22px; }
+        .ticket-check { width: 32px; height: 32px; border-radius: 999px; background: rgba(16, 185, 129, 0.2); color: var(--accent-blue-bright); display: flex; align-items: center; justify-content: center; }
+        .ticket-divider { height: 1px; border-bottom: 1px dashed var(--border-glass); margin: 8px 0; }
+        
+        .social-btn { width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--border-glass); display: flex; align-items: center; justify-content: center; color: var(--text-tertiary); }
+        .social-btn:hover { color: var(--text-primary); border-color: var(--border-glass-hover); }
+        .footer-link { font-size: 13px; transition: color .2s; }
+        .footer-link:hover { color: var(--text-primary); }
       `}</style>
 
       <Header />
       <main>
         <Hero />
         <BentoShowcase />
+        <FeaturesGrid />
         <RegistrationPortal />
         <MonthlyPaymentSection />
-        <FeaturesGrid />
       </main>
       <Footer />
     </div>
   );
 }
 
-const root = ReactDOM.createRoot(document.getElementById("root"));
+// Render React App
+const rootElement = document.getElementById("root");
+const root = ReactDOM.createRoot(rootElement);
 root.render(<App />);
-
 </script>
-
 </body>
 </html>
