@@ -19,11 +19,6 @@
 <!-- Lucide React UMD -->
 <script src="https://unpkg.com/lucide-react@0.263.1/dist/umd/lucide-react.min.js"></script>
 
-<!-- Firebase SDKs (Modular UMD scripts via gstatic) -->
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
-
 <style>
   html, body { margin: 0; padding: 0; background: #020604; scroll-behavior: smooth; }
   #root { min-height: 100vh; }
@@ -71,26 +66,6 @@ async function handleFileUpload(file) {
 
 const { useState, useEffect, useRef, useCallback, Fragment } = React;
 
-/* ------------------------------------------------------------------ */
-/*  Firebase Initialization                                           */
-/* ------------------------------------------------------------------ */
-
-const firebaseConfig = {
-  apiKey: "AIzaSyD1rEj-Ij6VqdJb1etQ3Xoza5C4VQSwXuU",
-  authDomain: "lemlem-school-f1899.firebaseapp.com",
-  projectId: "lemlem-school-f1899",
-  storageBucket: "lemlem-school-f1899.firebasestorage.app",
-  messagingSenderId: "151603270631",
-  appId: "1:151603270631:web:9822035f1c12b97761e342",
-  measurementId: "G-9VTM2WBJMC"
-};
-
-if (!firebase.apps.length) {
-  firebase.initializeApp(firebaseConfig);
-}
-const db = firebase.firestore();
-const storage = firebase.storage();
-
 const LOGO_URL = "https://raw.githubusercontent.com/monetox/Lemlem-school/111e78ac1c67c28734e125a37f785ec775a20745/IMG_20260818_230020_383.jpg";
 
 // Safely pull icons from LucideReact global object with fallback
@@ -133,20 +108,6 @@ const Code2 = safeIcon(lucideObj.Code2);
 const Heart = safeIcon(lucideObj.Heart);
 const Building = safeIcon(lucideObj.Building);
 const Send = safeIcon(lucideObj.Send);
-
-/* ------------------------------------------------------------------ */
-/*  Firebase Storage & Firestore Helper                               */
-/* ------------------------------------------------------------------ */
-
-async function uploadFileAndGetUrl(folder, file) {
-  if (!file) return null;
-  const timestamp = Date.now();
-  const safeName = file.name ? file.name.replace(/[^a-zA-Z0-9.-]/g, "_") : "file";
-  const filePath = `${folder}/${timestamp}_${safeName}`;
-  const fileRef = storage.ref().child(filePath);
-  await fileRef.put(file);
-  return await fileRef.getDownloadURL();
-}
 
 /* ------------------------------------------------------------------ */
 /*  Animation Utilities & Components                                  */
@@ -992,39 +953,40 @@ function RegistrationPortal() {
       
       const fileUrls = {};
       if (files["transcript"]?.rawFile) {
-        fileUrls.transcriptUrl = await uploadFileAndGetUrl(`applications/${currentAppId}`, files["transcript"].rawFile);
+        fileUrls.transcriptUrl = await handleFileUpload(files["transcript"].rawFile);
       }
       if (files["id"]?.rawFile) {
-        fileUrls.idUrl = await uploadFileAndGetUrl(`applications/${currentAppId}`, files["id"].rawFile);
+        fileUrls.idUrl = await handleFileUpload(files["id"].rawFile);
       }
       if (files["photo"]?.rawFile) {
-        fileUrls.photoUrl = await uploadFileAndGetUrl(`applications/${currentAppId}`, files["photo"].rawFile);
+        fileUrls.photoUrl = await handleFileUpload(files["photo"].rawFile);
       }
       if (files["receipt"]?.rawFile) {
-        fileUrls.receiptUrl = await uploadFileAndGetUrl(`applications/${currentAppId}`, files["receipt"].rawFile);
+        fileUrls.receiptUrl = await handleFileUpload(files["receipt"].rawFile);
       }
 
-      await db.collection("applications").add({
-        appId: currentAppId,
-        applicationType: mode === "new" ? "New Student Application" : "Returning Student Re-registration",
-        fullName: form.fullName,
+      const { error } = await supabase.from('applications').insert({
+        app_id: currentAppId,
+        application_type: mode === "new" ? "New Student Application" : "Returning Student Re-registration",
+        full_name: form.fullName,
         dob: form.dob,
         grade: form.grade,
-        previousSchool: mode === "new" ? form.previousSchool : null,
-        studentId: mode === "returning" ? form.studentId : null,
-        guardianName: form.guardianName,
+        previous_school: mode === "new" ? form.previousSchool : null,
+        student_id: mode === "returning" ? form.studentId : null,
+        guardian_name: form.guardianName,
         relationship: form.relationship,
         phone: form.phone,
         email: form.email,
         address: form.address,
-        fileUrls: fileUrls,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        file_urls: fileUrls,
         status: "pending"
       });
 
+      if (error) throw error;
+
       setIsSubmitted(true);
     } catch (err) {
-      console.error("Firebase submit error:", err);
+      console.error("Submit error:", err);
       setSubmitError("Failed to submit application. Please check your connection and try again.");
     } finally {
       setIsSubmitting(false);
@@ -1519,29 +1481,30 @@ function MonthlyPaymentSection() {
 
     try {
       const generatedRef = genReceiptRef();
-      const receiptUrl = receiptFile ? await uploadFileAndGetUrl(`payments/${generatedRef}`, receiptFile) : null;
+      const receiptUrl = receiptFile ? await handleFileUpload(receiptFile) : null;
 
-      await db.collection("payments").add({
-        paymentRef: generatedRef,
-        studentId: studentId,
-        studentName: studentName,
+      const { error } = await supabase.from('payments').insert({
+        payment_ref: generatedRef,
+        student_id: studentId,
+        student_name: studentName,
         grade: grade,
-        paymentMonth: selectedMonth,
-        baseTuition: baseTuition,
-        includeBus: includeBus,
-        includeMeals: includeMeals,
-        totalAmount: totalAmount,
-        paymentMethod: activeBank.name,
-        transactionRef: refNum,
-        receiptUrl: receiptUrl,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        payment_month: selectedMonth,
+        base_tuition: baseTuition,
+        include_bus: includeBus,
+        include_meals: includeMeals,
+        total_amount: totalAmount,
+        payment_method: activeBank.name,
+        transaction_ref: refNum,
+        receipt_url: receiptUrl,
         status: "pending_verification"
       });
+
+      if (error) throw error;
 
       setReceiptRef(generatedRef);
       setSubmitted(true);
     } catch (err) {
-      console.error("Firebase payment error:", err);
+      console.error("Payment error:", err);
       setErrors({ submit: "Submission failed. Please check your connection." });
     } finally {
       setSubmitting(false);
@@ -1712,7 +1675,7 @@ function MonthlyPaymentSection() {
                     <Receipt size={18} className="text-accent" />
                     Submit Fee Payment Proof
                   </h3>
-                  <span className="lhs-mono text-xs text-accent">Firebase Sync</span>
+                  <span className="lhs-mono text-xs text-accent">Supabase Sync</span>
                 </div>
 
                 <div className="grid sm:grid-cols-2 gap-4">
@@ -2225,7 +2188,8 @@ function App() {
   );
 }
 
-ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(<App />);
 </script>
 </body>
 </html>
