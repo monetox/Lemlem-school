@@ -19,6 +19,9 @@
 <!-- Lucide React UMD -->
 <script src="https://unpkg.com/lucide-react@0.263.1/dist/umd/lucide-react.min.js"></script>
 
+<!-- Supabase JS Client -->
+<script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+
 <style>
   html, body { margin: 0; padding: 0; background: #020604; scroll-behavior: smooth; }
   #root { min-height: 100vh; }
@@ -36,6 +39,37 @@
 
 <script type="text/babel" data-presets="react">
 const { useState, useEffect, useRef, useCallback, Fragment } = React;
+
+// Initialize Supabase Client
+const { createClient } = window.supabase;
+const supabase = createClient(
+  'https://qfxywxmlhakgjmdgxdsx.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh3YmtxaHR3b2Vqa2FrdGFxdXpxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzNDkzMTksImV4cCI6MjEwMzkyNTMxOX0.532JrCZXpKW2CwC84OAEK5TXjqLSRRPaA7-7O4CDcVA'
+);
+
+async function handleFileUpload(file) {
+  if (!file) return null;
+  
+  // Generate a unique file path using a timestamp
+  const filePath = `uploads/${Date.now()}_${file.name}`;
+
+  // 1. Upload file to Supabase Storage
+  const { data, error } = await supabase.storage
+    .from('receipts') // Replace with your bucket name if different
+    .upload(filePath, file);
+
+  if (error) {
+    console.error('Upload failed:', error.message);
+    throw new Error(error.message);
+  }
+
+  // 2. Get the public URL to save with your submission
+  const { data: urlData } = supabase.storage
+    .from('receipts')
+    .getPublicUrl(filePath);
+
+  return urlData.publicUrl;
+}
 
 const LOGO_URL = "https://raw.githubusercontent.com/monetox/Lemlem-school/111e78ac1c67c28734e125a37f785ec775a20745/IMG_20260818_230020_383.jpg";
 
@@ -79,74 +113,6 @@ const Code2 = safeIcon(lucideObj.Code2);
 const Heart = safeIcon(lucideObj.Heart);
 const Building = safeIcon(lucideObj.Building);
 const Send = safeIcon(lucideObj.Send);
-
-/* ------------------------------------------------------------------ */
-/*  FormSubmit Attachment Helper                                       */
-/* ------------------------------------------------------------------ */
-
-function submitFormsubmitWithFiles(targetUrl, fields, files) {
-  return new Promise((resolve, reject) => {
-    try {
-      const iframeName = 'fs_iframe_' + Date.now();
-      const iframe = document.createElement('iframe');
-      iframe.name = iframeName;
-      iframe.style.display = 'none';
-      document.body.appendChild(iframe);
-
-      const form = document.createElement('form');
-      form.action = targetUrl;
-      form.method = 'POST';
-      form.enctype = 'multipart/form-data';
-      form.target = iframeName;
-      form.style.display = 'none';
-
-      // Disable FormSubmit default captcha redirect if configured
-      const captchaInput = document.createElement('input');
-      captchaInput.type = 'hidden';
-      captchaInput.name = '_captcha';
-      captchaInput.value = 'false';
-      form.appendChild(captchaInput);
-
-      // Append text inputs
-      Object.entries(fields).forEach(([key, val]) => {
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = key;
-        input.value = val || '';
-        form.appendChild(input);
-      });
-
-      // Append file inputs via DataTransfer
-      Object.entries(files).forEach(([key, fileObj]) => {
-        if (fileObj) {
-          const fileInput = document.createElement('input');
-          fileInput.type = 'file';
-          fileInput.name = key;
-
-          const dt = new DataTransfer();
-          dt.items.add(fileObj);
-          fileInput.files = dt.files;
-
-          form.appendChild(fileInput);
-        }
-      });
-
-      document.body.appendChild(form);
-
-      iframe.onload = () => {
-        setTimeout(() => {
-          if (document.body.contains(form)) document.body.removeChild(form);
-          if (document.body.contains(iframe)) document.body.removeChild(iframe);
-        }, 500);
-        resolve();
-      };
-
-      form.submit();
-    } catch (err) {
-      reject(err);
-    }
-  });
-}
 
 /* ------------------------------------------------------------------ */
 /*  Animation Utilities & Components                                  */
@@ -988,35 +954,23 @@ function RegistrationPortal() {
     setSubmitError(null);
 
     try {
-      const textFields = {
-        "Application Type": mode === "new" ? "New Student Application" : "Returning Student Re-registration",
-        "Application ID": appId || genAppId(),
-        "Student Name": form.fullName,
-        "Date of Birth": form.dob,
-        "Grade": form.grade,
-        [mode === "new" ? "Previous School" : "Student ID"]: mode === "new" ? form.previousSchool : form.studentId,
-        "Guardian Name": form.guardianName,
-        "Relationship": form.relationship,
-        "Phone Number": form.phone,
-        "Email": form.email,
-        "Home Address": form.address,
-      };
-
-      const fileFields = {};
-      if (files["transcript"]?.rawFile) fileFields["Transcript"] = files["transcript"].rawFile;
-      if (files["id"]?.rawFile) fileFields["ID_Document"] = files["id"].rawFile;
-      if (files["photo"]?.rawFile) fileFields["Passport_Photo"] = files["photo"].rawFile;
-      if (files["receipt"]?.rawFile) fileFields["Payment_Receipt"] = files["receipt"].rawFile;
-
-      await submitFormsubmitWithFiles(
-        "https://formsubmit.co/asfawlemlemschool@gmail.com",
-        textFields,
-        fileFields
-      );
+      // Upload required files directly to Supabase Storage bucket
+      if (files["receipt"]?.rawFile) {
+        await handleFileUpload(files["receipt"].rawFile);
+      }
+      if (files["transcript"]?.rawFile) {
+        await handleFileUpload(files["transcript"].rawFile);
+      }
+      if (files["id"]?.rawFile) {
+        await handleFileUpload(files["id"].rawFile);
+      }
+      if (files["photo"]?.rawFile) {
+        await handleFileUpload(files["photo"].rawFile);
+      }
 
       setIsSubmitted(true);
     } catch (err) {
-      setSubmitError("Failed to submit application. Please check your connection and try again.");
+      setSubmitError("Failed to upload application files. " + (err.message || "Please check your connection and try again."));
     } finally {
       setIsSubmitting(false);
     }
@@ -1422,7 +1376,7 @@ function RegistrationPortal() {
                 <button onClick={next} disabled={isSubmitting} className="btn-primary flex items-center" style={{ padding: "10px 18px", gap: "6px", fontSize: "13.5px", opacity: isSubmitting ? 0.7 : 1 }}>
                   {isSubmitting ? (
                     <>
-                      <Loader2 size={16} className="animate-spin" /> Submitting...
+                      <Loader2 size={16} className="animate-spin" /> Uploading...
                     </>
                   ) : (
                     <>
@@ -1509,33 +1463,13 @@ function MonthlyPaymentSection() {
     setErrors({});
 
     try {
-      const textFields = {
-        "Form Type": "Monthly Fee Payment",
-        "Student ID": studentId,
-        "Student Name": studentName,
-        "Grade": grade,
-        "Payment Month": selectedMonth,
-        "Base Tuition": `${baseTuition} ETB`,
-        "Bus Service": includeBus ? "Yes (1,200 ETB)" : "No",
-        "Meal Plan": includeMeals ? "Yes (1,500 ETB)" : "No",
-        "Total Paid Amount": `${totalAmount} ETB`,
-        "Payment Method": activeBank.name,
-        "Transaction Ref Number": refNum,
-      };
-
-      const fileFields = {};
-      if (receiptFile) fileFields["Payment_Receipt"] = receiptFile;
-
-      await submitFormsubmitWithFiles(
-        "https://formsubmit.co/asfawlemlemschool@gmail.com",
-        textFields,
-        fileFields
-      );
+      // Upload file directly using Supabase handleFileUpload
+      await handleFileUpload(receiptFile);
 
       setReceiptRef(genReceiptRef());
       setSubmitted(true);
     } catch (err) {
-      setErrors({ submit: "Submission failed. Please check your connection." });
+      setErrors({ submit: "Upload failed: " + (err.message || "Please check your connection.") });
     } finally {
       setSubmitting(false);
     }
@@ -1705,7 +1639,7 @@ function MonthlyPaymentSection() {
                     <Receipt size={18} className="text-accent" />
                     Submit Fee Payment Proof
                   </h3>
-                  <span className="lhs-mono text-xs text-accent">FormSubmit Direct Sync</span>
+                  <span className="lhs-mono text-xs text-accent">Supabase Cloud Storage Sync</span>
                 </div>
 
                 <div className="grid sm:grid-cols-2 gap-4">
